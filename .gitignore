@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# husky
+.husky/_/
+
+# ide folders
+.vscode/
+.idea/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

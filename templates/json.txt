@@ -1,0 +1,53 @@
+{
+
+      "id": "CA.I.A.K1",
+
+      "description": "Certification requirements, recent flight experience, and recordkeeping.",
+
+      "area": "Preflight Preparation",
+
+      "task": "Pilot Qualifications",
+
+      "subTask": "Certification, Experience, Recordkeeping",
+
+      "knowledge": "Regulations",
+
+      "examType": "CAX"
+
+    },
+
+    {
+
+      "id": "CA.I.A.K2",
+
+      "description": "Privileges and limitations.",
+
+      "area": "Preflight Preparation",
+
+      "task": "Pilot Qualifications",
+
+      "subTask": "Privileges and Limitations",
+
+      "knowledge": "Regulations",
+
+      "examType": "CAX"
+
+    },
+
+    {
+
+      "id": "CA.I.A.K3",
+
+      "description": "Medical certificates: class, expiration, privileges, temporary disqualifications.",
+
+      "area": "Preflight Preparation",
+
+      "task": "Pilot Qualifications",
+
+      "subTask": "Medical Certificates",
+
+      "knowledge": "Regulations",
+
+      "examType": "CAX"
+
+    },
