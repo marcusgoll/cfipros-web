@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen, waitFor, act, type RenderResult } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import SubscriptionGuidancePage from '../page';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // Mock the Next.js router
 jest.mock('next/navigation', () => ({
@@ -9,10 +10,10 @@ jest.mock('next/navigation', () => ({
     replace: jest.fn(),
   })),
   useSearchParams: jest.fn(() => ({
-    get: jest.fn((param) => {
+    get: jest.fn(() => {
       // Default return null to simulate no type parameter
       return null;
-    })
+    }),
   })),
 }));
 
@@ -38,42 +39,41 @@ describe('SubscriptionGuidancePage', () => {
   };
   const mockGetUser = jest.fn();
   const mockSearchParams = {
-    get: jest.fn()
+    get: jest.fn(),
   };
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup router mock
-    require('next/navigation').useRouter.mockReturnValue(mockRouter);
-    require('next/navigation').useSearchParams.mockReturnValue({ get: mockSearchParams.get });
-    
+    (useRouter as jest.Mock).mockReturnValue(mockRouter);
+    (useSearchParams as jest.Mock).mockReturnValue({ get: mockSearchParams.get });
+
     // Default to no type parameter (CFI flow)
-    mockSearchParams.get.mockImplementation((param) => {
-      if (param === 'type') return null;
+    mockSearchParams.get.mockImplementation(() => {
       return null;
     });
-    
+
     // Setup Supabase mock with authenticated user (CFI by default)
     mockGetUser.mockResolvedValue({
       data: {
-        user: { id: 'test-cfi-id', email: 'cfi@example.com' }
-      }
+        user: { id: 'test-cfi-id', email: 'cfi@example.com' },
+      },
     });
-    
+
     (createSupabaseBrowserClient as jest.Mock).mockReturnValue({
       auth: {
-        getUser: mockGetUser
+        getUser: mockGetUser,
       },
       from: jest.fn(() => ({
         select: jest.fn(() => ({
           eq: jest.fn(() => ({
-            single: jest.fn().mockResolvedValue({ 
-              data: { id: 'test-cfi-id', role: 'CFI' } 
-            })
-          }))
+            single: jest.fn().mockResolvedValue({
+              data: { id: 'test-cfi-id', role: 'CFI' },
+            }),
+          })),
         })),
-      }))
+      })),
     });
   });
 
@@ -82,10 +82,10 @@ describe('SubscriptionGuidancePage', () => {
     const localStorageMock = {
       getItem: jest.fn().mockReturnValue(null),
       setItem: jest.fn(),
-      clear: jest.fn()
+      clear: jest.fn(),
     };
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-    
+
     render(<SubscriptionGuidancePage />);
     // The component still renders content without a role
     expect(screen.getByText(/Unlock Premium Features/i)).toBeInTheDocument();
@@ -98,51 +98,49 @@ describe('SubscriptionGuidancePage', () => {
     const localStorageMock = {
       getItem: jest.fn().mockReturnValue(null),
       setItem: jest.fn(),
-      clear: jest.fn()
+      clear: jest.fn(),
     };
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-    
+
     await act(async () => {
       render(<SubscriptionGuidancePage />);
     });
-    
+
     // Basic content should be present
     expect(screen.getByText(/Unlock Premium Features/i)).toBeInTheDocument();
     expect(screen.queryAllByText(/Free Access/i).length).toBeGreaterThan(0);
     expect(screen.queryAllByText(/Premium Access/i).length).toBeGreaterThan(0);
-    
+
     // Role-specific content should be absent
     expect(screen.queryByText(/Unlimited student connections/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Manage unlimited CFIs at your school/i)).not.toBeInTheDocument();
   });
 
   it('renders the CFI subscription guidance page after loading', async () => {
-    let rendered: RenderResult;
-    
     // Mock localStorage
     const localStorageMock = {
       getItem: jest.fn().mockReturnValue('cfi'),
       setItem: jest.fn(),
-      clear: jest.fn()
+      clear: jest.fn(),
     };
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-    
+
     await act(async () => {
-      rendered = render(<SubscriptionGuidancePage />);
+      render(<SubscriptionGuidancePage />);
     });
-    
+
     // Check for content elements instead
     await waitFor(() => {
       expect(screen.getByText(/Unlock Premium Features/i)).toBeInTheDocument();
     });
-    
+
     // Check for CFI specific content
     expect(screen.getByText(/Complete CFI toolkit for effective teaching/i)).toBeInTheDocument();
     expect(screen.queryAllByText(/Premium Access/i).length).toBeGreaterThan(0);
-    
+
     // Verify buttons are present
     expect(screen.getByText(/Get Premium Access/i)).toBeInTheDocument();
-    
+
     // Check for CFI specific features
     expect(screen.getByText(/Unlimited student connections/i)).toBeInTheDocument();
     expect(screen.getByText(/Create and manage custom lesson plans/i)).toBeInTheDocument();
@@ -153,31 +151,29 @@ describe('SubscriptionGuidancePage', () => {
     const localStorageMock = {
       getItem: jest.fn().mockReturnValue('school_admin'),
       setItem: jest.fn(),
-      clear: jest.fn()
+      clear: jest.fn(),
     };
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-    
-    let rendered: RenderResult;
-    
+
     await act(async () => {
-      rendered = render(<SubscriptionGuidancePage />);
+      render(<SubscriptionGuidancePage />);
     });
-    
+
     // Check for content elements instead
     await waitFor(() => {
       expect(screen.getByText(/Unlock Premium Features/i)).toBeInTheDocument();
     });
-    
+
     // Check for School Admin specific content
     expect(screen.getByText(/Full features for managing your flight school/i)).toBeInTheDocument();
-    
+
     // Verify buttons are present
     expect(screen.getByText(/Continue with Free Access/i)).toBeInTheDocument();
     expect(screen.getByText(/Get Premium Access/i)).toBeInTheDocument();
-    
+
     // Check for School Admin specific features
     expect(screen.getByText(/Manage unlimited CFIs at your school/i)).toBeInTheDocument();
     expect(screen.getByText(/School-wide analytics and reporting/i)).toBeInTheDocument();
     expect(screen.getByText(/Enhanced school profile with search priority/i)).toBeInTheDocument();
   });
-}); 
+});

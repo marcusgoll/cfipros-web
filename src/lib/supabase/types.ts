@@ -3,6 +3,18 @@
 export type UserRole = 'STUDENT' | 'CFI' | 'SCHOOL_ADMIN';
 export type Part61Or141Type = 'PART_61' | 'PART_141';
 
+// Define a type for user preferences to avoid using 'any'
+export type UserPreferences = {
+  theme?: 'light' | 'dark' | 'system';
+  notifications?: boolean;
+  emailPreferences?: {
+    marketing?: boolean;
+    updates?: boolean;
+    lessons?: boolean;
+  };
+  [key: string]: unknown;
+};
+
 export interface Profile {
   id: string; // UUID, references auth.users.id
   created_at: string; // TIMESTAMPTZ
@@ -12,7 +24,7 @@ export interface Profile {
   email: string; // TEXT, should match auth.users email
   role: UserRole;
   part_61_or_141_type?: Part61Or141Type | null; // ENUM, nullable
-  preferences?: Record<string, any> | null; // JSONB, nullable
+  preferences?: UserPreferences | null; // JSONB, nullable
 }
 
 export interface School {

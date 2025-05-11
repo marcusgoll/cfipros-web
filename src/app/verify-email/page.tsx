@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { VerifyEmail } from '@/components/features/auth/VerifyEmail';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ export default function VerifyEmailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Email Verification Required</CardTitle>
             <CardDescription>
-              We couldn't find your email address. Please return to the signup page.
+              We couldn&apos;t find your email address. Please return to the signup page.
             </CardDescription>
           </CardHeader>
           <CardFooter>

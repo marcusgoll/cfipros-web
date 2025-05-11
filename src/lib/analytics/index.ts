@@ -1,19 +1,32 @@
 /**
  * Analytics Module using PostHog
- * 
+ *
  * This module provides functions to track page views and events in the application.
  */
 
 import posthog from 'posthog-js';
 import { isFeatureEnabled } from '../feature-flags';
 
+// Define types for analytics properties
+export type AnalyticsProperties = {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | string[]
+    | number[]
+    | Record<string, unknown>;
+};
+
 // Initialize PostHog in client components
 export function initAnalytics() {
   if (typeof window === 'undefined') return;
-  
+
   const posthogApiKey = process.env.NEXT_PUBLIC_POSTHOG_API_KEY;
   const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com';
-  
+
   if (posthogApiKey && isFeatureEnabled('ANALYTICS_ENABLED')) {
     posthog.init(posthogApiKey, {
       api_host: posthogHost,
@@ -42,13 +55,13 @@ export const EVENTS = {
   EMAIL_VERIFIED: 'email_verified',
   ROLE_SELECTED: 'role_selected',
   PROFILE_COMPLETED: 'profile_completed',
-  
+
   // Authentication events
   LOGIN: 'login',
   LOGOUT: 'logout',
   PASSWORD_RESET_REQUESTED: 'password_reset_requested',
   PASSWORD_RESET_COMPLETED: 'password_reset_completed',
-  
+
   // Subscription events
   SUBSCRIPTION_PAGE_VIEWED: 'subscription_page_viewed',
   SUBSCRIPTION_STARTED: 'subscription_started',
@@ -56,14 +69,14 @@ export const EVENTS = {
 };
 
 // Track a custom event
-export function trackEvent(event: string, properties?: Record<string, any>) {
+export function trackEvent(event: string, properties?: AnalyticsProperties) {
   if (typeof window === 'undefined' || !isFeatureEnabled('ANALYTICS_ENABLED')) return;
 
   posthog.capture(event, properties);
 }
 
 // Identify a user (call after login/signup)
-export function identifyUser(userId: string, traits?: Record<string, any>) {
+export function identifyUser(userId: string, traits?: AnalyticsProperties) {
   if (typeof window === 'undefined' || !isFeatureEnabled('ANALYTICS_ENABLED')) return;
 
   posthog.identify(userId, traits);
@@ -74,4 +87,4 @@ export function resetUser() {
   if (typeof window === 'undefined' || !isFeatureEnabled('ANALYTICS_ENABLED')) return;
 
   posthog.reset();
-} 
+}

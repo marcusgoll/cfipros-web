@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { initAnalytics, trackPageView } from '@/lib/analytics';
 import { useFeatureFlag } from '@/lib/feature-flags/client';
@@ -20,7 +20,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     if (isAnalyticsEnabled) {
       // Wait for the page to fully load
       const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
-      
+
       // Use setTimeout to ensure the page has fully loaded
       // This helps get more accurate page view timing
       setTimeout(() => {
@@ -30,4 +30,4 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   }, [pathname, searchParams, isAnalyticsEnabled]);
 
   return <>{children}</>;
-} 
+}

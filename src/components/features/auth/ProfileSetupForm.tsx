@@ -6,11 +6,23 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { trackEvent, EVENTS } from '@/lib/analytics';
 
 // Base schema for all roles
@@ -28,9 +40,11 @@ const cfiSchema = z.object({
 const schoolAdminSchema = z.object({
   ...baseSchema,
   schoolName: z.string().min(2, 'School name is required'),
-  schoolType: z.enum(['ground_school', 'part61_flight_school', 'part141_flight_school'], {
-    required_error: 'Please select the school type',
-  }).default('part61_flight_school'),
+  schoolType: z
+    .enum(['ground_school', 'part61_flight_school', 'part141_flight_school'], {
+      required_error: 'Please select the school type',
+    })
+    .default('part61_flight_school'),
 });
 
 // Student-specific fields (just basic info for now)
@@ -39,14 +53,17 @@ const studentSchema = z.object({
 });
 
 // Dynamic schema based on selected role
-type ProfileFormValues = z.infer<typeof cfiSchema> | z.infer<typeof schoolAdminSchema> | z.infer<typeof studentSchema>;
+type ProfileFormValues =
+  | z.infer<typeof cfiSchema>
+  | z.infer<typeof schoolAdminSchema>
+  | z.infer<typeof studentSchema>;
 
 export function ProfileSetupForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  
+
   // Get role from localStorage
   useEffect(() => {
     const role = localStorage.getItem('selectedRole');
@@ -64,27 +81,29 @@ export function ProfileSetupForm() {
       selectedRole === 'cfi'
         ? cfiSchema
         : selectedRole === 'school_admin'
-        ? schoolAdminSchema
-        : studentSchema
+          ? schoolAdminSchema
+          : studentSchema
     ),
     defaultValues: {
       fullName: '',
       ...(selectedRole === 'cfi' ? { certificateNumber: '' } : {}),
-      ...(selectedRole === 'school_admin' ? { schoolName: '', schoolType: 'part61_flight_school' } : {}),
+      ...(selectedRole === 'school_admin'
+        ? { schoolName: '', schoolType: 'part61_flight_school' }
+        : {}),
     },
   });
 
   async function onSubmit(data: ProfileFormValues) {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // TODO: Update user profile in Supabase with the submitted data
       console.log('Submitting profile data:', data, 'for role:', selectedRole);
-      
+
       // Track the profile completion event
       trackEvent(EVENTS.PROFILE_COMPLETED, { role: selectedRole });
-      
+
       // Redirect based on role
       if (selectedRole === 'student') {
         // Students go directly to dashboard
@@ -122,7 +141,7 @@ export function ProfileSetupForm() {
               {error}
             </div>
           )}
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Common Fields */}
@@ -139,7 +158,7 @@ export function ProfileSetupForm() {
                   </FormItem>
                 )}
               />
-              
+
               {/* CFI-specific Fields */}
               {selectedRole === 'cfi' && (
                 <FormField
@@ -156,7 +175,7 @@ export function ProfileSetupForm() {
                   )}
                 />
               )}
-              
+
               {/* School Admin-specific Fields */}
               {selectedRole === 'school_admin' && (
                 <>
@@ -173,15 +192,15 @@ export function ProfileSetupForm() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="schoolType"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>School Type</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <Select
+                          onValueChange={field.onChange}
                           value={field.value}
                           defaultValue="part61_flight_school"
                         >
@@ -192,12 +211,18 @@ export function ProfileSetupForm() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="ground_school">Ground School</SelectItem>
-                            <SelectItem value="part61_flight_school">Part 61 Flight School</SelectItem>
-                            <SelectItem value="part141_flight_school">Part 141 Flight School</SelectItem>
+                            <SelectItem value="part61_flight_school">
+                              Part 61 Flight School
+                            </SelectItem>
+                            <SelectItem value="part141_flight_school">
+                              Part 141 Flight School
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <p className="text-sm text-gray-500 mt-1">
-                          Ground School: Training focused on theory only. Part 61: Individual flight training with flexible curriculum. Part 141: FAA-approved structured programs.
+                          Ground School: Training focused on theory only. Part 61: Individual flight
+                          training with flexible curriculum. Part 141: FAA-approved structured
+                          programs.
                         </p>
                         <FormMessage />
                       </FormItem>
@@ -205,7 +230,7 @@ export function ProfileSetupForm() {
                   />
                 </>
               )}
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Saving...' : 'Complete Profile'}
               </Button>
@@ -215,4 +240,4 @@ export function ProfileSetupForm() {
       </Card>
     </div>
   );
-} 
+}
