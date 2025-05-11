@@ -71,7 +71,7 @@ export function ProfileSetupForm() {
       setSelectedRole(role);
     } else {
       // If no role is found, redirect back to role selection
-      router.push('/role-selection');
+      router.replace('/role-selection');
     }
   }, [router]);
 
@@ -107,10 +107,10 @@ export function ProfileSetupForm() {
       // Redirect based on role
       if (selectedRole === 'student') {
         // Students go directly to dashboard
-        router.push('/dashboard');
+        router.replace('/dashboard');
       } else {
         // CFIs and School Admins go to subscription guidance
-        router.push('/dashboard/cfi/subscribe-guidance');
+        router.replace('/dashboard/cfi/subscribe-guidance');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
