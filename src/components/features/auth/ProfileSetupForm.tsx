@@ -52,17 +52,31 @@ const studentSchema = z.object({
   ...baseSchema,
 });
 
-// Dynamic schema based on selected role
-type ProfileFormValues =
-  | z.infer<typeof cfiSchema>
-  | z.infer<typeof schoolAdminSchema>
-  | z.infer<typeof studentSchema>;
+// Define all possible form values to ensure type safety
+interface CFIFormValues {
+  fullName: string;
+  certificateNumber: string;
+}
+
+interface SchoolAdminFormValues {
+  fullName: string;
+  schoolName: string;
+  schoolType: 'ground_school' | 'part61_flight_school' | 'part141_flight_school';
+}
+
+interface StudentFormValues {
+  fullName: string;
+}
+
+// Union type of all possible form values
+type ProfileFormValues = CFIFormValues | SchoolAdminFormValues | StudentFormValues;
 
 export function ProfileSetupForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [formInitialized, setFormInitialized] = useState(false);
 
   // Get role from localStorage
   useEffect(() => {
@@ -75,7 +89,7 @@ export function ProfileSetupForm() {
     }
   }, [router]);
 
-  // Different form for each role
+  // Initialize the form based on the selected role
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(
       selectedRole === 'cfi'
@@ -84,14 +98,28 @@ export function ProfileSetupForm() {
           ? schoolAdminSchema
           : studentSchema
     ),
-    defaultValues: {
-      fullName: '',
-      ...(selectedRole === 'cfi' ? { certificateNumber: '' } : {}),
-      ...(selectedRole === 'school_admin'
-        ? { schoolName: '', schoolType: 'part61_flight_school' }
-        : {}),
-    },
+    // Initialize all possible form fields with defaults
+    defaultValues: selectedRole === 'cfi'
+      ? { fullName: '', certificateNumber: '' } as CFIFormValues
+      : selectedRole === 'school_admin'
+        ? { fullName: '', schoolName: '', schoolType: 'part61_flight_school' } as SchoolAdminFormValues
+        : { fullName: '' } as StudentFormValues,
   });
+
+  // Mark form as initialized when selectedRole is set
+  useEffect(() => {
+    if (selectedRole && !formInitialized) {
+      // Reset the form with appropriate default values after the role is set
+      form.reset(
+        selectedRole === 'cfi'
+          ? { fullName: '', certificateNumber: '' } as CFIFormValues
+          : selectedRole === 'school_admin'
+            ? { fullName: '', schoolName: '', schoolType: 'part61_flight_school' } as SchoolAdminFormValues
+            : { fullName: '' } as StudentFormValues
+      );
+      setFormInitialized(true);
+    }
+  }, [selectedRole, form, formInitialized]);
 
   async function onSubmit(data: ProfileFormValues) {
     setIsLoading(true);
@@ -160,7 +188,7 @@ export function ProfileSetupForm() {
               />
 
               {/* CFI-specific Fields */}
-              {selectedRole === 'cfi' && (
+              {selectedRole === 'cfi' && formInitialized && (
                 <FormField
                   control={form.control}
                   name="certificateNumber"
@@ -177,7 +205,7 @@ export function ProfileSetupForm() {
               )}
 
               {/* School Admin-specific Fields */}
-              {selectedRole === 'school_admin' && (
+              {selectedRole === 'school_admin' && formInitialized && (
                 <>
                   <FormField
                     control={form.control}

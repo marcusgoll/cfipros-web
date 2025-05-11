@@ -274,14 +274,20 @@ export async function getUserRole(userId: string) {
     .from('profiles')
     .select('role')
     .eq('id', userId)
-    .single();
-
+    .maybeSingle();
+  
   if (error) {
     console.error('[Auth Action] Error fetching user role:', error.message);
     return { role: null, error };
   }
+  
+  // If no profile is found
+  if (!data) {
+    console.log('[Auth Action] No profile found for user, assuming default role');
+    return { role: 'STUDENT', error: null }; // Default role
+  }
 
-  return { role: data?.role, error: null };
+  return { role: data.role, error: null };
 }
 
 // Determine redirect path based on user role
@@ -303,4 +309,80 @@ export async function getRedirectPathByRole(userId: string) {
     default:
       return '/dashboard';
   }
+}
+
+// Update user profile
+export async function updateProfile({
+  userId,
+  fullName,
+}: {
+  userId: string;
+  fullName: string;
+}) {
+  console.log('[Auth Action] Updating profile for user:', userId);
+  const supabase = createSupabaseServerClient();
+
+  // Update the user profile in the profiles table
+  const { error } = await supabase
+    .from('profiles')
+    .update({ full_name: fullName, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('[Auth Action] Error updating profile:', error.message);
+    return { error };
+  }
+
+  return { error: null };
+}
+
+// Update user password
+export async function updatePassword({
+  currentPassword,
+  newPassword,
+}: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  console.log('[Auth Action] Attempting to update password');
+  const supabase = createSupabaseServerClient();
+
+  // First, we need to get the current user's email
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData?.user?.email) {
+    console.error('[Auth Action] Cannot update password: User email not found');
+    return {
+      error: {
+        message: 'User email not found. Please sign out and sign in again.',
+      },
+    };
+  }
+
+  // Now verify the current password by attempting a signin with the user's email
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: userData.user.email,
+    password: currentPassword,
+  });
+
+  if (signInError) {
+    console.error('[Auth Action] Current password is incorrect:', signInError.message);
+    return {
+      error: {
+        message: 'Current password is incorrect',
+      },
+    };
+  }
+
+  // If current password was correct, update to the new password
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (updateError) {
+    console.error('[Auth Action] Error updating password:', updateError.message);
+    return { error: updateError };
+  }
+
+  console.log('[Auth Action] Password updated successfully');
+  return { error: null };
 }

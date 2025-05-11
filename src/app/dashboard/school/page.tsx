@@ -27,14 +27,51 @@ export default async function SchoolAdminDashboardPage() {
   }
   
   // Fetch school-specific data
-  const { data: schoolData, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-  
-  if (error) {
-    console.error('Error fetching school admin profile:', error.message);
+  let schoolData = null;
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching school admin profile:', error.message);
+    } else {
+      schoolData = data;
+      
+      // If no profile exists, create one
+      if (!schoolData) {
+        console.log('No school admin profile found, creating a default profile');
+        
+        // Use upsert instead of insert to handle potential duplicate inserts
+        const { data: newProfile, error: upsertError } = await supabase
+          .from('profiles')
+          .upsert({ 
+            id: user.id,
+            full_name: user.user_metadata?.full_name || '',
+            email: user.email,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            role: 'SCHOOL_ADMIN',
+            school_name: user.user_metadata?.school_name || 'Your Flight School',
+            part_61_or_141_type: user.user_metadata?.part_61_or_141_type || 'part61_flight_school'
+          }, { 
+            onConflict: 'id', // Specify the conflicting column
+            ignoreDuplicates: false // Update if record exists
+          })
+          .select('*')
+          .single();
+          
+        if (upsertError) {
+          console.error('Error creating/updating school admin profile:', upsertError.message);
+        } else {
+          schoolData = newProfile;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Unexpected error handling school admin profile:', err);
   }
   
   return (
