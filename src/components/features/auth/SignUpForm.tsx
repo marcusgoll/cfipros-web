@@ -15,10 +15,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { signUpWithEmail } from '@/lib/supabase/auth'; // Import the server action
 import { useState } from 'react';
+import Link from 'next/link'; // Import Link for the login hint
 
 const formSchema = z
   .object({
-    fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
     email: z.string().email({ message: 'Invalid email address.' }),
     password: z.string().min(8, { message: 'Password must be at least 8 characters.' }),
     confirmPassword: z.string(),
@@ -33,14 +33,13 @@ export type SignUpFormData = z.infer<typeof formSchema>;
 export function SignUpForm() {
   const [formMessage, setFormMessage] = useState<{
     type: 'success' | 'error';
-    message: string;
+    message: string | React.ReactNode; // Allow ReactNode for links
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -55,7 +54,31 @@ export function SignUpForm() {
       const result = await signUpWithEmail(values);
 
       if (result.error) {
-        setFormMessage({ type: 'error', message: result.error.message });
+        // Check for specific error indicating user already exists
+        if (result.error.message.toLowerCase().includes('user already registered') || 
+            result.error.message.toLowerCase().includes('email link signin rate exceeded') || // Another common one
+            result.error.message.toLowerCase().includes('user already exists')
+        ) {
+          setFormMessage({
+            type: 'error',
+            message: (
+              <>
+                This email is already registered. Please{" "}
+                <Link href="/login" className="underline font-semibold">
+                  log in
+                </Link>
+                {" "}or use a different email.
+              </>
+            ),
+          });
+        } else if (result.error.message.toLowerCase().includes('email rate limit exceeded')) {
+             setFormMessage({
+                type: 'error',
+                message: 'Too many attempts. Please try again later.'
+            });
+        } else {
+          setFormMessage({ type: 'error', message: result.error.message });
+        }
       } else if (result.user) {
         // Supabase sends a confirmation email by default if enabled in project settings.
         // result.user.identities might be empty if email confirmation is pending.
@@ -86,27 +109,18 @@ export function SignUpForm() {
       }
     } catch (error) {
       console.error('Sign up failed:', error);
-      setFormMessage({ type: 'error', message: 'An unexpected error occurred. Please try again.' });
+      if (error instanceof Error) {
+        setFormMessage({ type: 'error', message: error.message });
+      } else {
+        setFormMessage({ type: 'error', message: 'An unexpected error occurred.' });
+      }
     }
     setIsSubmitting(false);
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="email"
@@ -157,7 +171,7 @@ export function SignUpForm() {
             {formMessage.message}
           </div>
         )}
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Signing Up...' : 'Sign Up'}
         </Button>
       </form>

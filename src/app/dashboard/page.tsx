@@ -1,48 +1,73 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getUserRole } from '@/lib/supabase/auth';
+import type { Metadata } from 'next';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+export const metadata: Metadata = {
+  title: 'Dashboard | CFIPros',
+  description: 'Student Dashboard - CFIPros',
+};
 
-export default function DashboardPage() {
-  const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function checkProfile() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace('/login');
-        return;
-      }
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-      if (!profile) {
-        router.replace('/profile-setup');
-        return;
-      }
-      setLoading(false);
-    }
-    checkProfile();
-  }, [router, supabase]);
-
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+export default async function DashboardPage() {
+  const supabase = createSupabaseServerClient();
+  
+  // Check if user is authenticated
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    redirect('/login');
   }
-
-  // Render your dashboard content here
+  
+  // Get user role
+  const { role } = await getUserRole(user.id);
+  
+  // If user has a specific role that has a dedicated dashboard, redirect them
+  if (role === 'CFI') {
+    redirect('/dashboard/cfi');
+  } else if (role === 'SCHOOL_ADMIN') {
+    redirect('/dashboard/school');
+  }
+  
+  // Otherwise, show the student dashboard (default)
+  // Fetch any student-specific data here
+  const { data: studentData, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching student profile:', error.message);
+  }
+  
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <main className="flex flex-col items-center w-full max-w-2xl p-6 bg-white shadow-md rounded-lg">
-        <h1 className="text-3xl font-bold mb-4">Welcome to your Dashboard!</h1>
-        {/* Add your dashboard content here */}
-      </main>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Student Dashboard</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Welcome, {studentData?.full_name || user.email}</h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            This is your student dashboard. Here you can track your progress, manage your courses, and more.
+          </p>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            Track your training progress and upcoming lessons here.
+          </p>
+          {/* Progress tracking components would go here */}
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Upcoming Classes</h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            View your scheduled classes and training sessions.
+          </p>
+          {/* Calendar or list of upcoming classes would go here */}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,23 +1,52 @@
-import { VerifyEmail } from '@/components/features/auth/VerifyEmail';
-import { Suspense } from 'react';
+'use client';
 
-// Wrapper component to handle Suspense for searchParams
-function VerifyEmailPageContent() {
-  // The VerifyEmail component will handle reading searchParams internally
-  // as it needs to be a client component to do so effectively with hooks.
-  return <VerifyEmail />;
-}
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { VerifyEmail } from '@/components/features/auth/VerifyEmail';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function VerifyEmailPage() {
+  const [email, setEmail] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Get email from localStorage that was set during signup
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
+    }
+  }, []);
+
+  const handleContinue = () => {
+    // After email verification, redirect to role selection
+    router.push('/role-selection');
+  };
+
+  if (!email) {
+    return (
+      <div className="container flex items-center justify-center min-h-screen p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-xl">Email Verification Required</CardTitle>
+            <CardDescription>
+              We couldn't find your email address. Please return to the signup page.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Link href="/sign-up" className="w-full">
+              <Button className="w-full">Return to Sign Up</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-8">Verifying Your Email</h1>
-        {/* Suspense is important here if VerifyEmail uses useSearchParams */}
-        <Suspense fallback={<div>Loading...</div>}>
-          <VerifyEmailPageContent />
-        </Suspense>
-      </main>
+    <div className="container flex items-center justify-center min-h-screen p-4">
+      <VerifyEmail email={email} onVerified={handleContinue} />
     </div>
   );
 }
