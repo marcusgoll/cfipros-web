@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: 'html',
   timeout: 60000,
   expect: {
-    timeout: 15000
+    timeout: 15000,
   },
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3001',
@@ -48,6 +48,5 @@ export default defineConfig({
     stderr: 'pipe',
     timeout: 120000,
     ignoreHTTPSErrors: true,
-    readyRegExp: 'Ready in',
   },
-}); 
+});

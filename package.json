@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint --fix",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
     "prepare": "husky install",
     "test": "jest --config jest.config.cjs",
     "test:watch": "jest --config jest.config.cjs --watch",
