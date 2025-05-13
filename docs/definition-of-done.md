@@ -76,4 +76,45 @@ For a story to be marked as "Done," it must satisfy the following criteria. Thes
     * Code coverage reports.
 * Stories should be written to facilitate the creation of these automated checks.
 
+## 5. Exceptions Process
+
+There may be situations where meeting all DoD criteria for a specific story is not practical or necessary. In such cases, a formal exceptions process should be followed:
+
+### 5.1. Criteria for Exceptions
+
+Exceptions to the DoD should only be considered for legitimate reasons, such as:
+
+* **Technical Limitations:** Where technical constraints make certain criteria impossible to meet.
+* **Business Urgency:** Critical business needs that require expedited delivery (e.g., critical production fixes).
+* **Incremental Implementation:** Planned phased approach where certain aspects will be addressed in subsequent stories.
+* **Temporary Solutions:** Stopgap measures with a clear plan for addressing technical debt.
+
+### 5.2. Exception Request Process
+
+1. **Identification:** The developer identifies which specific DoD criteria cannot be met and the reasons why.
+2. **Documentation:** The exception request is documented in:
+   * The story file itself.
+   * The corresponding PR description in the "Request for Exception" section.
+3. **Justification:** Clear justification must be provided, explaining:
+   * Which specific DoD criteria are not being met.
+   * Why the exception is necessary.
+   * Risks associated with the exception.
+   * Plan for addressing the gap in the future (if applicable).
+4. **Approval:** Exceptions must be explicitly approved by:
+   * The tech lead or architect for technical exceptions.
+   * The product owner for business-driven exceptions.
+5. **Tracking:** Approved exceptions should be tracked as technical debt in the backlog if they require future remediation.
+
+### 5.3. Examples of Valid Exceptions
+
+* **Reduced Test Coverage:** For emergent production issues where immediate deployment is necessary, with a follow-up story to add comprehensive tests.
+* **Temporary Non-Compliance with Architecture:** When exploring new approaches with explicit understanding that refactoring will follow if the approach proves valuable.
+* **Deferring Documentation:** For rapid prototyping, with documentation to be completed in a follow-up story before production deployment.
+
+### 5.4. Exception Limitations
+
+* Exceptions should be rare, not the norm.
+* Exceptions should never compromise data integrity, security, or legal compliance.
+* Accumulated exceptions should be regularly reviewed and addressed as part of technical debt management.
+
 This Definition of Done is a living document and may be updated as the project evolves and the team refines its processes.

@@ -6,6 +6,19 @@ We're excited that you're interested in contributing to CFIPros! This document o
 
 While we don't have a formal Code of Conduct document yet, we expect all contributors to interact respectfully and constructively. Please be mindful of others and help create a positive and welcoming environment for everyone.
 
+## 📋 Definition of Done
+
+All contributions to CFIPros must meet our Definition of Done (DoD) criteria before they can be considered complete. Our DoD ensures consistent quality across the project and provides clear guidelines for what constitutes completed work.
+
+The full DoD can be found in [docs/definition-of-done.md](docs/definition-of-done.md). In summary, the DoD covers:
+
+- Requirements fulfillment and acceptance criteria
+- Code quality and implementation standards
+- Testing and verification requirements
+- Documentation and knowledge sharing
+
+When submitting a PR, you must check all applicable items in the DoD checklist. If you need an exception to any DoD criteria, please follow the exceptions process documented in the DoD.
+
 ## 🌳 Git Branching Strategy
 
 We follow a Gitflow-like branching model with some simplifications suitable for our project size and team.
@@ -77,17 +90,22 @@ docs: update README with setup instructions
 1.  **Create a Feature/Bugfix Branch:** Branch off `develop` (or `main` for hotfixes) as described in the Git Branching Strategy.
 2.  **Implement Changes:** Make your code changes, adhering to our [Coding Standards](docs/coding-standards.md).
 3.  **Write Tests:** Add appropriate unit, integration, or E2E tests for your changes. Ensure all tests pass.
-4.  **Commit Changes:** Follow the Commit Message Conventions.
-5.  **Push Your Branch:** Push your feature/bugfix branch to the remote repository.
-6.  **Create a Pull Request:**
+4.  **Verify DoD Compliance:** Ensure your changes meet all applicable criteria in the [Definition of Done](docs/definition-of-done.md).
+5.  **Commit Changes:** Follow the Commit Message Conventions.
+6.  **Push Your Branch:** Push your feature/bugfix branch to the remote repository.
+7.  **Create a Pull Request:**
     -   Open a PR from your branch to the `develop` branch (or `main` for hotfixes).
     -   Use the PR template provided (`.github/PULL_REQUEST_TEMPLATE.md`). Fill it out completely.
+    -   Complete the DoD checklist in the PR template, indicating which criteria have been met.
+    -   If any DoD exceptions are needed, document them in the "Request for Exception" section.
     -   Clearly describe the changes made and the problem solved.
     -   Link any relevant issues (e.g., `Closes #issue-number`).
-7.  **Code Review:** At least one other team member (or designated reviewer) will review your PR.
+8.  **Code Review:** At least one other team member (or designated reviewer) will review your PR.
+    -   Reviewers will verify compliance with the DoD criteria.
     -   Address any feedback or comments promptly.
     -   Push further commits to your branch to address feedback; the PR will update automatically.
-8.  **Merge PR:** Once the PR is approved and all checks pass, it will be merged by a maintainer.
+9.  **Automated Checks:** Ensure all automated checks (tests, linting, type checking) are passing.
+10. **Merge PR:** Once the PR is approved, DoD criteria are satisfied, and all checks pass, it will be merged by a maintainer.
     -   Prefer squash and merge or rebase and merge to keep the `develop` history clean, though this can be decided on a per-PR basis.
 
 **PR Expectations:**
@@ -95,6 +113,7 @@ docs: update README with setup instructions
 -   PRs should be focused and not too large. Break down large features into smaller, manageable PRs.
 -   Ensure your PR passes all automated checks (linters, tests, CI builds).
 -   Provide clear and concise descriptions and test steps.
+-   Complete the DoD checklist honestly; it's better to note exceptions than to claim false compliance.
 -   Be responsive to review comments.
 
 ## 💅 Code Style and Standards
