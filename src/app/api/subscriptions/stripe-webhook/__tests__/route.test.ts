@@ -1,10 +1,10 @@
 import { POST } from '../route';
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe/client';
-import { 
-  createSubscription, 
-  getSubscriptionByStripeId, 
-  updateSubscription 
+import {
+  createSubscription,
+  getSubscriptionByStripeId,
+  updateSubscription,
 } from '@/services/subscriptionService';
 
 // Mock the next/server modules
@@ -74,7 +74,7 @@ describe('Stripe Webhook Handler', () => {
       },
     } as unknown as NextRequest;
 
-    const response = await POST(req);
+    await POST(req);
 
     expect(NextResponse.json).toHaveBeenCalledWith(
       { error: 'Missing webhook secret or signature' },
@@ -96,7 +96,7 @@ describe('Stripe Webhook Handler', () => {
       throw new Error('Invalid signature');
     });
 
-    const response = await POST(req);
+    await POST(req);
 
     expect(NextResponse.json).toHaveBeenCalledWith(
       { error: 'Webhook signature verification failed: Invalid signature' },
@@ -126,7 +126,7 @@ describe('Stripe Webhook Handler', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
     });
 
-    const response = await POST(req);
+    await POST(req);
 
     expect(createSubscription).toHaveBeenCalled();
     expect(NextResponse.json).toHaveBeenCalledWith({ received: true });
@@ -155,7 +155,7 @@ describe('Stripe Webhook Handler', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
     });
 
-    const response = await POST(req);
+    await POST(req);
 
     expect(getSubscriptionByStripeId).toHaveBeenCalledWith('sub_123456');
     expect(updateSubscription).toHaveBeenCalled();
@@ -185,7 +185,7 @@ describe('Stripe Webhook Handler', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
     });
 
-    const response = await POST(req);
+    await POST(req);
 
     expect(getSubscriptionByStripeId).toHaveBeenCalledWith('sub_123456');
     expect(updateSubscription).toHaveBeenCalledWith(
@@ -215,7 +215,7 @@ describe('Stripe Webhook Handler', () => {
       },
     });
 
-    const response = await POST(req);
+    await POST(req);
 
     // Should not call any handlers but still return success
     expect(createSubscription).not.toHaveBeenCalled();
@@ -235,7 +235,7 @@ describe('Stripe Webhook Handler', () => {
       },
     } as unknown as NextRequest;
 
-    const response = await POST(req);
+    await POST(req);
 
     expect(NextResponse.json).toHaveBeenCalledWith(
       { error: 'Webhook processing failed' },

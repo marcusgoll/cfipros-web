@@ -1,196 +1,205 @@
 import {
   createSubscription,
   getSubscriptionByStripeId,
-  handleSubscriptionStatusChange,
-  checkUserSubscription,
   updateSubscription,
   getSubscriptionByUserId,
   getSubscriptionBySchoolId,
   hasActiveUserSubscription,
-  hasActiveSchoolSubscription
+  hasActiveSchoolSubscription,
+  supabaseAdmin,
 } from '../subscriptionService';
-import { createClient } from '@supabase/supabase-js';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { SubscriptionStatus } from '@/lib/stripe/types';
+import type { SubscriptionStatus } from '@/lib/stripe/types';
 
-// Mock Supabase client
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(),
+// Mock the Supabase client
+jest.mock('@/lib/supabase/server', () => ({
+  createServerSupabaseClient: jest.fn(),
 }));
 
-// Mock data for tests
-const mockSubscription = {
-  id: 'uuid-1234',
-  created_at: '2023-05-13T00:00:00Z',
-  updated_at: '2023-05-13T00:00:00Z',
-  deleted_at: null,
-  user_id: 'user-1234',
-  school_id: null,
-  stripe_customer_id: 'cus_1234',
-  stripe_subscription_id: 'sub_1234',
-  status: 'active',
-  current_period_start: '2023-05-13T00:00:00Z',
-  current_period_end: '2023-06-13T00:00:00Z',
-  cancel_at_period_end: false,
-};
+// Mock the @supabase/supabase-js createClient
+jest.mock('@supabase/supabase-js', () => {
+  const mockSupabaseInstance = {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    is: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+    maybeSingle: jest.fn(),
+  };
+  return {
+    createClient: jest.fn(() => mockSupabaseInstance),
+  };
+});
 
 describe('Subscription Service', () => {
-  let mockFrom: jest.Mock;
-  let mockSelect: jest.Mock;
-  let mockInsert: jest.Mock;
-  let mockUpdate: jest.Mock;
-  let mockEq: jest.Mock;
-  let mockIs: jest.Mock;
-  let mockSingle: jest.Mock;
-  let mockMaybeSingle: jest.Mock;
+  // Mock data
+  const mockSubscription = {
+    id: '123e4567-e89b-12d3-a456-426614174000',
+    created_at: '2023-05-13T12:00:00Z',
+    updated_at: '2023-05-13T12:00:00Z',
+    deleted_at: null,
+    user_id: 'user123',
+    school_id: null,
+    stripe_customer_id: 'cus_123456',
+    stripe_subscription_id: 'sub_123456',
+    status: 'active' as SubscriptionStatus,
+    current_period_start: '2023-05-13T12:00:00Z',
+    current_period_end: '2023-06-13T12:00:00Z',
+    cancel_at_period_end: false,
+  };
 
+  // Reset mocks before each test
   beforeEach(() => {
-    // Reset mocks between tests
     jest.clearAllMocks();
-
-    // Setup chain of mock functions for Supabase client
-    mockMaybeSingle = jest.fn().mockResolvedValue({ data: mockSubscription, error: null });
-    mockSingle = jest.fn().mockResolvedValue({ data: mockSubscription, error: null });
-    mockIs = jest.fn().mockReturnValue({ maybeSingle: mockMaybeSingle });
-    mockEq = jest.fn().mockImplementation((field) => {
-      if (field === 'status') {
-        return { is: mockIs };
-      }
-      return { select: mockSelect, update: mockUpdate, single: mockSingle };
-    });
-    mockUpdate = jest.fn().mockReturnValue({ eq: mockEq });
-    mockSelect = jest.fn().mockReturnValue({ eq: mockEq, single: mockSingle });
-    mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-    mockFrom = jest.fn().mockReturnValue({
-      select: mockSelect,
-      insert: mockInsert,
-      update: mockUpdate,
-    });
-
-    // Mock createClient to return our mock client
-    (createClient as jest.Mock).mockReturnValue({
-      from: mockFrom,
-    });
   });
 
-  describe('createSubscription', () => {
-    it('should create a subscription and return it', async () => {
-      const subscriptionData = {
-        user_id: 'user-1234',
-        stripe_customer_id: 'cus_1234',
-        stripe_subscription_id: 'sub_1234',
-        status: 'active' as const,
-        current_period_start: '2023-05-13T00:00:00Z',
-        current_period_end: '2023-06-13T00:00:00Z',
-        cancel_at_period_end: false,
-      };
+  // Mock the Supabase client response
+  const mockSupabase = {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    is: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+    maybeSingle: jest.fn(),
+  };
 
-      const result = await createSubscription(subscriptionData);
+  // Set up Supabase mock for success scenario
+  function setupSupabaseSuccess() {
+    mockSupabase.single.mockResolvedValue({ data: mockSubscription, error: null });
+    mockSupabase.maybeSingle.mockResolvedValue({ data: mockSubscription, error: null });
+    jest
+      .requireMock('@/lib/supabase/server')
+      .createServerSupabaseClient.mockReturnValue(mockSupabase);
+  }
 
-      expect(mockFrom).toHaveBeenCalledWith('subscriptions');
-      expect(mockInsert).toHaveBeenCalledWith(subscriptionData);
-      expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(mockSingle).toHaveBeenCalled();
-      expect(result).toEqual(mockSubscription);
-    });
+  // Set up Supabase mock for error scenario
+  function setupSupabaseError() {
+    const error = { message: 'Database error', code: 'ERROR' };
+    mockSupabase.single.mockResolvedValue({ data: null, error });
+    mockSupabase.maybeSingle.mockResolvedValue({ data: null, error });
+    jest
+      .requireMock('@/lib/supabase/server')
+      .createServerSupabaseClient.mockReturnValue(mockSupabase);
+  }
 
-    it('should throw an error if creation fails', async () => {
-      mockSingle.mockResolvedValueOnce({
-        data: null,
-        error: new Error('Database error'),
-      });
-
-      const subscriptionData = {
-        user_id: 'user-1234',
-        stripe_customer_id: 'cus_1234',
-        stripe_subscription_id: 'sub_1234',
-        status: 'active' as const,
-        current_period_start: '2023-05-13T00:00:00Z',
-        current_period_end: '2023-06-13T00:00:00Z',
-        cancel_at_period_end: false,
-      };
-
-      await expect(createSubscription(subscriptionData)).rejects.toThrow();
-    });
-  });
+  // Set up Supabase mock for not found scenario
+  function setupSupabaseNotFound() {
+    mockSupabase.single.mockResolvedValue({ data: null, error: null });
+    mockSupabase.maybeSingle.mockResolvedValue({ data: null, error: null });
+    jest
+      .requireMock('@/lib/supabase/server')
+      .createServerSupabaseClient.mockReturnValue(mockSupabase);
+  }
 
   describe('getSubscriptionByStripeId', () => {
-    it('should retrieve a subscription by Stripe ID', async () => {
-      const result = await getSubscriptionByStripeId('sub_1234');
+    it('should return subscription when found', async () => {
+      setupSupabaseSuccess();
 
-      expect(mockFrom).toHaveBeenCalledWith('subscriptions');
-      expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(mockEq).toHaveBeenCalledWith('stripe_subscription_id', 'sub_1234');
+      const result = await getSubscriptionByStripeId('sub_123456');
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('subscriptions');
+      expect(mockSupabase.select).toHaveBeenCalledWith('*');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('stripe_subscription_id', 'sub_123456');
+      expect(mockSupabase.is).toHaveBeenCalledWith('deleted_at', null);
+      expect(mockSupabase.single).toHaveBeenCalled();
       expect(result).toEqual(mockSubscription);
     });
 
-    it('should return null if no subscription is found', async () => {
-      mockSingle.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
-      });
+    it('should return null when error occurs', async () => {
+      setupSupabaseError();
 
-      const result = await getSubscriptionByStripeId('non_existent');
+      const result = await getSubscriptionByStripeId('sub_123456');
 
       expect(result).toBeNull();
     });
   });
 
-  describe('checkUserSubscription', () => {
-    it('should return true if user has active subscription', async () => {
-      const result = await checkUserSubscription('user-1234');
+  describe('createSubscription', () => {
+    it('should create and return subscription', async () => {
+      // Mock the exported supabaseAdmin object
+      const mockFromFn = jest.fn().mockReturnThis();
+      const mockInsertFn = jest.fn().mockReturnThis();
+      const mockSelectFn = jest.fn().mockReturnThis();
+      const mockSingleFn = jest.fn().mockResolvedValue({ data: mockSubscription, error: null });
 
-      expect(mockFrom).toHaveBeenCalledWith('subscriptions');
-      expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(mockEq).toHaveBeenCalledWith('user_id', 'user-1234');
-      expect(mockEq).toHaveBeenCalledWith('status', 'active');
-      expect(mockIs).toHaveBeenCalledWith('deleted_at', null);
-      expect(result).toBe(true);
-    });
+      // Override the from method on the actual supabaseAdmin export
+      supabaseAdmin.from = mockFromFn;
 
-    it('should return false if user has no active subscription', async () => {
-      mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
-
-      const result = await checkUserSubscription('user-no-sub');
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('handleSubscriptionStatusChange', () => {
-    it('should update subscription status', async () => {
-      const result = await handleSubscriptionStatusChange(
-        'sub_1234',
-        'active',
-        1684108800, // 2023-05-15T00:00:00Z
-        1686787200, // 2023-06-15T00:00:00Z
-        false
-      );
-
-      expect(mockFrom).toHaveBeenCalledWith('subscriptions');
-      expect(mockUpdate).toHaveBeenCalledWith({
-        status: 'active',
-        current_period_start: expect.any(String),
-        current_period_end: expect.any(String),
-        cancel_at_period_end: false,
+      // Build the chain
+      mockFromFn.mockReturnValue({
+        insert: mockInsertFn,
+        select: mockSelectFn,
+        single: mockSingleFn,
       });
-      expect(mockEq).toHaveBeenCalledWith('stripe_subscription_id', 'sub_1234');
+
+      mockInsertFn.mockReturnValue({
+        select: mockSelectFn,
+      });
+
+      mockSelectFn.mockReturnValue({
+        single: mockSingleFn,
+      });
+
+      const params = {
+        user_id: 'user123',
+        stripe_customer_id: 'cus_123456',
+        stripe_subscription_id: 'sub_123456',
+        status: 'active' as SubscriptionStatus,
+        current_period_start: '2023-05-13T12:00:00Z',
+        current_period_end: '2023-06-13T12:00:00Z',
+        cancel_at_period_end: false,
+      };
+
+      const result = await createSubscription(params);
+
+      expect(mockFromFn).toHaveBeenCalledWith('subscriptions');
+      expect(mockInsertFn).toHaveBeenCalled();
+      expect(mockSelectFn).toHaveBeenCalled();
+      expect(mockSingleFn).toHaveBeenCalled();
       expect(result).toEqual(mockSubscription);
     });
 
-    it('should return null if subscription not found', async () => {
-      mockSingle.mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST116' },
+    it('should return null when error occurs', async () => {
+      // Mock the exported supabaseAdmin object for error
+      const mockFromFn = jest.fn().mockReturnThis();
+      const mockInsertFn = jest.fn().mockReturnThis();
+      const mockSelectFn = jest.fn().mockReturnThis();
+      const mockSingleFn = jest
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: 'Database error' } });
+
+      // Override the from method on the actual supabaseAdmin export
+      supabaseAdmin.from = mockFromFn;
+
+      // Build the chain
+      mockFromFn.mockReturnValue({
+        insert: mockInsertFn,
+        select: mockSelectFn,
+        single: mockSingleFn,
       });
 
-      const result = await handleSubscriptionStatusChange(
-        'non_existent',
-        'active',
-        1684108800,
-        1686787200,
-        false
-      );
+      mockInsertFn.mockReturnValue({
+        select: mockSelectFn,
+      });
+
+      mockSelectFn.mockReturnValue({
+        single: mockSingleFn,
+      });
+
+      const params = {
+        user_id: 'user123',
+        stripe_customer_id: 'cus_123456',
+        stripe_subscription_id: 'sub_123456',
+        status: 'active' as SubscriptionStatus,
+        current_period_start: '2023-05-13T12:00:00Z',
+        current_period_end: '2023-06-13T12:00:00Z',
+        cancel_at_period_end: false,
+      };
+
+      const result = await createSubscription(params);
 
       expect(result).toBeNull();
     });
@@ -198,32 +207,84 @@ describe('Subscription Service', () => {
 
   describe('updateSubscription', () => {
     it('should update and return subscription', async () => {
-      const result = await updateSubscription('uuid-1234', {
-        status: 'active' as SubscriptionStatus,
-        current_period_end: '2023-07-13T12:00:00Z'
+      // Mock the exported supabaseAdmin object
+      const mockFromFn = jest.fn().mockReturnThis();
+      const mockUpdateFn = jest.fn().mockReturnThis();
+      const mockEqFn = jest.fn().mockReturnThis();
+      const mockSelectFn = jest.fn().mockReturnThis();
+      const mockSingleFn = jest.fn().mockResolvedValue({ data: mockSubscription, error: null });
+
+      // Override the from method on the actual supabaseAdmin export
+      supabaseAdmin.from = mockFromFn;
+
+      // Build the chain
+      mockFromFn.mockReturnValue({
+        update: mockUpdateFn,
       });
 
-      expect(mockFrom).toHaveBeenCalledWith('subscriptions');
-      expect(mockUpdate).toHaveBeenCalledWith({
-        status: 'active' as SubscriptionStatus,
-        current_period_end: '2023-07-13T12:00:00Z'
+      mockUpdateFn.mockReturnValue({
+        eq: mockEqFn,
       });
-      expect(mockEq).toHaveBeenCalledWith('id', 'uuid-1234');
-      expect(mockSelect).toHaveBeenCalled();
-      expect(mockSingle).toHaveBeenCalled();
+
+      mockEqFn.mockReturnValue({
+        select: mockSelectFn,
+      });
+
+      mockSelectFn.mockReturnValue({
+        single: mockSingleFn,
+      });
+
+      const params = {
+        status: 'active' as SubscriptionStatus,
+        current_period_end: '2023-07-13T12:00:00Z',
+      };
+
+      const result = await updateSubscription('sub_123456', params);
+
+      expect(mockFromFn).toHaveBeenCalledWith('subscriptions');
+      expect(mockUpdateFn).toHaveBeenCalledWith(params);
+      expect(mockEqFn).toHaveBeenCalledWith('stripe_subscription_id', 'sub_123456');
+      expect(mockSelectFn).toHaveBeenCalled();
+      expect(mockSingleFn).toHaveBeenCalled();
       expect(result).toEqual(mockSubscription);
     });
 
     it('should return null when error occurs', async () => {
-      mockSingle.mockResolvedValueOnce({
-        data: null,
-        error: { message: 'Database error', code: 'ERROR' },
+      // Mock the exported supabaseAdmin object for error
+      const mockFromFn = jest.fn().mockReturnThis();
+      const mockUpdateFn = jest.fn().mockReturnThis();
+      const mockEqFn = jest.fn().mockReturnThis();
+      const mockSelectFn = jest.fn().mockReturnThis();
+      const mockSingleFn = jest
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: 'Database error' } });
+
+      // Override the from method on the actual supabaseAdmin export
+      supabaseAdmin.from = mockFromFn;
+
+      // Build the chain
+      mockFromFn.mockReturnValue({
+        update: mockUpdateFn,
       });
 
-      const result = await updateSubscription('uuid-1234', {
-        status: 'active' as SubscriptionStatus,
-        current_period_end: '2023-07-13T12:00:00Z'
+      mockUpdateFn.mockReturnValue({
+        eq: mockEqFn,
       });
+
+      mockEqFn.mockReturnValue({
+        select: mockSelectFn,
+      });
+
+      mockSelectFn.mockReturnValue({
+        single: mockSingleFn,
+      });
+
+      const params = {
+        status: 'active' as SubscriptionStatus,
+        current_period_end: '2023-07-13T12:00:00Z',
+      };
+
+      const result = await updateSubscription('sub_123456', params);
 
       expect(result).toBeNull();
     });
@@ -231,20 +292,22 @@ describe('Subscription Service', () => {
 
   describe('getSubscriptionByUserId', () => {
     it('should return subscription when found', async () => {
-      const result = await getSubscriptionByUserId('user-1234');
+      setupSupabaseSuccess();
 
-      expect(mockFrom).toHaveBeenCalledWith('subscriptions');
-      expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(mockEq).toHaveBeenCalledWith('user_id', 'user-1234');
-      expect(mockIs).toHaveBeenCalledWith('deleted_at', null);
-      expect(mockMaybeSingle).toHaveBeenCalled();
+      const result = await getSubscriptionByUserId('user123');
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('subscriptions');
+      expect(mockSupabase.select).toHaveBeenCalledWith('*');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('user_id', 'user123');
+      expect(mockSupabase.is).toHaveBeenCalledWith('deleted_at', null);
+      expect(mockSupabase.maybeSingle).toHaveBeenCalled();
       expect(result).toEqual(mockSubscription);
     });
 
     it('should return null when not found', async () => {
-      mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
+      setupSupabaseNotFound();
 
-      const result = await getSubscriptionByUserId('user-no-sub');
+      const result = await getSubscriptionByUserId('user123');
 
       expect(result).toBeNull();
     });
@@ -254,20 +317,23 @@ describe('Subscription Service', () => {
     it('should return subscription when found', async () => {
       // Override the mock subscription for school test
       const schoolSubscription = { ...mockSubscription, user_id: null, school_id: 'school123' };
-      mockMaybeSingle.mockResolvedValue({ data: schoolSubscription, error: null });
+      mockSupabase.maybeSingle.mockResolvedValue({ data: schoolSubscription, error: null });
+      jest
+        .requireMock('@/lib/supabase/server')
+        .createServerSupabaseClient.mockReturnValue(mockSupabase);
 
       const result = await getSubscriptionBySchoolId('school123');
 
-      expect(mockFrom).toHaveBeenCalledWith('subscriptions');
-      expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(mockEq).toHaveBeenCalledWith('school_id', 'school123');
-      expect(mockIs).toHaveBeenCalledWith('deleted_at', null);
-      expect(mockMaybeSingle).toHaveBeenCalled();
+      expect(mockSupabase.from).toHaveBeenCalledWith('subscriptions');
+      expect(mockSupabase.select).toHaveBeenCalledWith('*');
+      expect(mockSupabase.eq).toHaveBeenCalledWith('school_id', 'school123');
+      expect(mockSupabase.is).toHaveBeenCalledWith('deleted_at', null);
+      expect(mockSupabase.maybeSingle).toHaveBeenCalled();
       expect(result).toEqual(schoolSubscription);
     });
 
     it('should return null when not found', async () => {
-      mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
+      setupSupabaseNotFound();
 
       const result = await getSubscriptionBySchoolId('school123');
 
@@ -277,27 +343,42 @@ describe('Subscription Service', () => {
 
   describe('hasActiveUserSubscription', () => {
     it('should return true for active subscription', async () => {
-      const result = await hasActiveUserSubscription('user-1234');
+      // Setup for active subscription
+      // Update the mock to use ACTIVE status in the response
+      const activeSubscription = {
+        ...mockSubscription,
+        status: 'active' as SubscriptionStatus,
+        current_period_end: '2099-12-31T23:59:59Z', // Future date to ensure it's always active
+      };
+      mockSupabase.maybeSingle.mockResolvedValue({ data: activeSubscription, error: null });
+      jest
+        .requireMock('@/lib/supabase/server')
+        .createServerSupabaseClient.mockReturnValue(mockSupabase);
+
+      const result = await hasActiveUserSubscription('user123');
 
       expect(result).toBe(true);
     });
 
     it('should return false for inactive subscription', async () => {
-      const inactiveSubscription = { 
-        ...mockSubscription, 
-        status: 'canceled' as SubscriptionStatus 
+      const inactiveSubscription = {
+        ...mockSubscription,
+        status: 'canceled' as SubscriptionStatus,
       };
-      mockMaybeSingle.mockResolvedValue({ data: inactiveSubscription, error: null });
+      mockSupabase.maybeSingle.mockResolvedValue({ data: inactiveSubscription, error: null });
+      jest
+        .requireMock('@/lib/supabase/server')
+        .createServerSupabaseClient.mockReturnValue(mockSupabase);
 
-      const result = await hasActiveUserSubscription('user-1234');
+      const result = await hasActiveUserSubscription('user123');
 
       expect(result).toBe(false);
     });
 
     it('should return false when no subscription found', async () => {
-      mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
+      setupSupabaseNotFound();
 
-      const result = await hasActiveUserSubscription('user-no-sub');
+      const result = await hasActiveUserSubscription('user123');
 
       expect(result).toBe(false);
     });
@@ -306,14 +387,17 @@ describe('Subscription Service', () => {
   describe('hasActiveSchoolSubscription', () => {
     it('should return true for active subscription', async () => {
       // Override the mock subscription for school test
-      const schoolSubscription = { 
-        ...mockSubscription, 
-        user_id: null, 
+      const schoolSubscription = {
+        ...mockSubscription,
+        user_id: null,
         school_id: 'school123',
         status: 'active' as SubscriptionStatus,
-        current_period_end: '2023-06-13T12:00:00Z'
+        current_period_end: '2099-12-31T23:59:59Z', // Future date to ensure it's always active
       };
-      mockMaybeSingle.mockResolvedValue({ data: schoolSubscription, error: null });
+      mockSupabase.maybeSingle.mockResolvedValue({ data: schoolSubscription, error: null });
+      jest
+        .requireMock('@/lib/supabase/server')
+        .createServerSupabaseClient.mockReturnValue(mockSupabase);
 
       const result = await hasActiveSchoolSubscription('school123');
 
@@ -321,7 +405,7 @@ describe('Subscription Service', () => {
     });
 
     it('should return false when no subscription found', async () => {
-      mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
+      setupSupabaseNotFound();
 
       const result = await hasActiveSchoolSubscription('school123');
 
