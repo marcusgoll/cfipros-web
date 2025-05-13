@@ -21,6 +21,7 @@ The initial Minimum Viable Product (MVP) focuses on delivering a high-accuracy F
 - **Project Structure:** [docs/project-structure.md](docs/project-structure.md)
 - **Coding Standards:** [docs/coding-standards.md](docs/coding-standards.md)
 - **Testing Strategy:** [docs/testing-strategy.md](docs/testing-strategy.md)
+- **Database Migration Strategy:** [docs/migrations.md](docs/migrations.md)
 
 ## 🛠️ Getting Started: Local Development Setup
 
@@ -85,15 +86,27 @@ Follow these instructions to set up the project for local development.
 ### Database Setup (Supabase)
 
 1.  **Schema Migrations:**
-    Apply the database schema. SQL migration files are typically located in a `supabase/migrations` directory (not yet present in the provided structure, but will be added). For now, you might need to set up tables manually via the Supabase dashboard according to `docs/data-models.md` or run seed scripts if available.
-    *Watch for specific instructions on database migrations as the project evolves.*
+    Apply the database schema using Supabase CLI migrations. For detailed instructions on our migration strategy, see [docs/migrations.md](docs/migrations.md).
+    ```bash
+    # Install Supabase CLI if you haven't already
+    npm install -g supabase
+    
+    # Login to Supabase
+    supabase login
+    
+    # Link to your project
+    supabase link --project-ref your-project-ref
+    
+    # Apply migrations
+    supabase db push
+    ```
 
 2.  **Seed Initial Data (if applicable):**
-    Run any data seeding scripts provided (e.g., to populate ACS codes).
+    Run the seed script to populate essential data.
     ```bash
-    # Example: npm run seed:db
+    # Apply migrations and seed data
+    supabase db push --include-seed
     ```
-    *(A script like `scripts/seed-acs-codes.ts` is planned).*
 
 ### Running the Development Server
 
