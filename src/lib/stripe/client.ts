@@ -1,13 +1,17 @@
+/**
+ * Stripe Client Setup
+ *
+ * This module initializes the Stripe client and provides methods for subscription-related operations.
+ */
+
 import Stripe from 'stripe';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
 }
 
-/**
- * Initialize Stripe client with the secret API key
- */
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+// Initialize Stripe client
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16', // Use the latest stable API version
   appInfo: {
     name: 'CFIPros',
@@ -16,36 +20,78 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 /**
- * Retrieve a subscription from Stripe
- * @param subscriptionId - The Stripe subscription ID
+ * Creates a customer in Stripe
+ * @param email Customer's email
+ * @param name Customer's name (optional)
+ * @param metadata Additional metadata
+ * @returns Stripe Customer object
  */
-export const getSubscription = async (subscriptionId: string) => {
-  return stripe.subscriptions.retrieve(subscriptionId);
-};
+export async function createCustomer(
+  email: string,
+  name?: string,
+  metadata?: Record<string, string>
+): Promise<Stripe.Customer> {
+  return await stripe.customers.create({
+    email,
+    name,
+    metadata,
+  });
+}
 
 /**
- * Cancel a subscription in Stripe
- * @param subscriptionId - The Stripe subscription ID
+ * Creates a subscription for a customer
+ * @param customerId Stripe customer ID
+ * @param priceId Stripe price ID
+ * @param metadata Additional metadata
+ * @returns Stripe Subscription object
  */
-export const cancelSubscription = async (subscriptionId: string) => {
-  return stripe.subscriptions.cancel(subscriptionId);
-};
+export async function createSubscription(
+  customerId: string,
+  priceId: string,
+  metadata?: Record<string, string>
+): Promise<Stripe.Subscription> {
+  return await stripe.subscriptions.create({
+    customer: customerId,
+    items: [{ price: priceId }],
+    metadata,
+    payment_behavior: 'default_incomplete',
+    payment_settings: {
+      save_default_payment_method: 'on_subscription',
+    },
+    expand: ['latest_invoice.payment_intent'],
+  });
+}
 
 /**
- * Create a customer in Stripe
- * @param params - Customer creation parameters
+ * Cancels a subscription at period end
+ * @param subscriptionId Stripe subscription ID
+ * @returns Stripe Subscription object
  */
-export const createCustomer = async (params: Stripe.CustomerCreateParams) => {
-  return stripe.customers.create(params);
-};
+export async function cancelSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+  return await stripe.subscriptions.update(subscriptionId, {
+    cancel_at_period_end: true,
+  });
+}
 
 /**
- * Create a subscription in Stripe
- * @param params - Subscription creation parameters
+ * Reactivates a subscription that was set to cancel at period end
+ * @param subscriptionId Stripe subscription ID
+ * @returns Stripe Subscription object
  */
-export const createSubscription = async (params: Stripe.SubscriptionCreateParams) => {
-  return stripe.subscriptions.create(params);
-};
+export async function reactivateSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+  return await stripe.subscriptions.update(subscriptionId, {
+    cancel_at_period_end: false,
+  });
+}
+
+/**
+ * Retrieves a subscription by ID
+ * @param subscriptionId Stripe subscription ID
+ * @returns Stripe Subscription object
+ */
+export async function getSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+  return await stripe.subscriptions.retrieve(subscriptionId);
+}
 
 /**
  * Construct a webhook event and verify its signature

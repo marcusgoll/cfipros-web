@@ -1,81 +1,82 @@
 -- Create subscriptions table
-CREATE TABLE IF NOT EXISTS subscriptions (
+CREATE TABLE IF NOT EXISTS public.subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-  deleted_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
+  school_id UUID REFERENCES public.schools(id) ON DELETE CASCADE,
   stripe_customer_id TEXT NOT NULL,
   stripe_subscription_id TEXT NOT NULL UNIQUE,
-  status TEXT NOT NULL,
-  current_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
-  current_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'trialing', 'unpaid')),
+  current_period_start TIMESTAMPTZ NOT NULL,
+  current_period_end TIMESTAMPTZ NOT NULL,
   cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
   
-  -- Check constraint to ensure exactly one of user_id or school_id is set
-  CONSTRAINT exactly_one_owner CHECK (
+  -- A subscription must be associated with either a user or a school, but not both
+  CONSTRAINT subscription_owner CHECK (
     (user_id IS NOT NULL AND school_id IS NULL) OR
     (user_id IS NULL AND school_id IS NOT NULL)
   )
 );
 
--- Create index on user_id
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id) WHERE user_id IS NOT NULL;
+-- Add indexes for faster lookups
+CREATE INDEX IF NOT EXISTS subscriptions_user_id_idx ON public.subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS subscriptions_school_id_idx ON public.subscriptions(school_id);
+CREATE INDEX IF NOT EXISTS subscriptions_stripe_customer_id_idx ON public.subscriptions(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS subscriptions_stripe_subscription_id_idx ON public.subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS subscriptions_status_idx ON public.subscriptions(status);
 
--- Create index on school_id
-CREATE INDEX IF NOT EXISTS idx_subscriptions_school_id ON subscriptions(school_id) WHERE school_id IS NOT NULL;
-
--- Create index on status
-CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
-
--- Add trigger to automatically update the updated_at field
-CREATE OR REPLACE FUNCTION update_subscription_updated_at()
+-- Create trigger to update the updated_at timestamp
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
+  NEW.updated_at = now();
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_subscription_timestamp
-BEFORE UPDATE ON subscriptions
+-- Add the trigger to the subscriptions table
+DROP TRIGGER IF EXISTS handle_subscriptions_updated_at ON public.subscriptions;
+CREATE TRIGGER handle_subscriptions_updated_at
+BEFORE UPDATE ON public.subscriptions
 FOR EACH ROW
-EXECUTE FUNCTION update_subscription_updated_at();
+EXECUTE FUNCTION public.handle_updated_at();
 
--- Create RLS policies
--- Enable RLS on subscriptions table
-ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+-- RLS Policies
+-- Enable RLS on the subscriptions table
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
--- Policy for selecting: Users can see their own subscriptions, and schools can see their subscriptions
-CREATE POLICY "Users can view their own subscriptions"
-  ON subscriptions
-  FOR SELECT
-  USING (
-    (auth.uid() = user_id) OR
-    (auth.uid() IN (
-      SELECT user_id FROM school_members 
-      WHERE school_id = subscriptions.school_id AND role = 'admin'
-    ))
-  );
+-- 1. Allow users to view their own subscriptions
+CREATE POLICY subscriptions_select_own ON public.subscriptions
+FOR SELECT
+TO authenticated
+USING (
+  auth.uid() = user_id
+);
 
--- Policy for inserting: Only service role can insert
-CREATE POLICY "Service role can insert subscriptions"
-  ON subscriptions
-  FOR INSERT
-  WITH CHECK (auth.jwt() ->> 'role' = 'service_role');
+-- 2. Allow school admins to view their school's subscriptions
+-- (Assuming school_members table with role='admin' for school admins)
+CREATE POLICY subscriptions_select_school_admin ON public.subscriptions
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.school_members
+    WHERE school_members.school_id = subscriptions.school_id
+    AND school_members.user_id = auth.uid()
+    AND school_members.role = 'admin'
+  )
+);
 
--- Policy for updating: Only service role can update
-CREATE POLICY "Service role can update subscriptions"
-  ON subscriptions
-  FOR UPDATE
-  USING (auth.jwt() ->> 'role' = 'service_role');
-
--- Policy for deleting: Only service role can delete
-CREATE POLICY "Service role can delete subscriptions"
-  ON subscriptions
-  FOR DELETE
-  USING (auth.jwt() ->> 'role' = 'service_role');
+-- 3. Service role can manage all subscriptions (for backend operations)
+CREATE POLICY subscriptions_service_role ON public.subscriptions
+FOR ALL
+TO service_role
+USING (true);
 
 -- Grant permissions to authenticated users
-GRANT SELECT ON TABLE subscriptions TO authenticated; 
+GRANT SELECT ON public.subscriptions TO authenticated;
+
+-- Grant all permissions to service_role
+GRANT ALL ON public.subscriptions TO service_role; 

@@ -1,67 +1,82 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { buffer } from 'node:stream/consumers';
-import { constructEventFromWebhook } from '@/lib/stripe/client';
-import { StripeWebhookEventType } from '@/lib/stripe/types';
-import {
-  createSubscription,
-  getSubscriptionByStripeId,
-  handleSubscriptionStatusChange,
-} from '@/services/subscriptionService';
-import type Stripe from 'stripe';
+/**
+ * Stripe Webhook Handler
+ *
+ * This is a webhook endpoint for handling Stripe events related to subscriptions.
+ * It validates the webhook signature and processes subscription-related events to
+ * update the subscription status in the database.
+ */
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe/client';
+import type { 
+  SubscriptionCreateParams 
+} from '@/lib/types/subscription';
+import type { SubscriptionStatus } from '@/lib/stripe/types';
+import { 
+  createSubscription, 
+  getSubscriptionByStripeId, 
+  updateSubscription 
+} from '@/services/subscriptionService';
 
 /**
- * Handle Stripe webhook events
+ * Handles Stripe webhook events
  */
 export async function POST(req: NextRequest) {
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: 'Stripe webhook secret is not configured' }, { status: 500 });
-  }
-
   try {
-    // Get the request body as raw text
-    const payload = await buffer(req.body as ReadableStream);
-    const payloadString = payload.toString();
+    const body = await req.text();
+    const signature = req.headers.get('stripe-signature');
 
-    // Get the Stripe signature from the headers
-    const headersList = headers();
-    const signature = headersList.get('stripe-signature');
-
-    if (!signature) {
+    if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
       return NextResponse.json(
-        { error: 'Stripe signature is missing from request headers' },
+        { error: 'Missing webhook secret or signature' },
         { status: 400 }
       );
     }
 
-    // Construct and verify the webhook event
-    const event = constructEventFromWebhook(payloadString, signature);
+    // Verify webhook signature
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      const error = err as Error;
+      console.error(`Webhook signature verification failed: ${error.message}`);
+      return NextResponse.json(
+        { error: `Webhook signature verification failed: ${error.message}` },
+        { status: 400 }
+      );
+    }
 
-    // Process the webhook event based on type
+    // Handle the event based on type
     switch (event.type) {
-      case StripeWebhookEventType.SUBSCRIPTION_CREATED:
+      case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
         break;
-
-      case StripeWebhookEventType.SUBSCRIPTION_UPDATED:
+      
+      case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         break;
-
-      case StripeWebhookEventType.SUBSCRIPTION_DELETED:
+      
+      case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
-
+      
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
 
-    return NextResponse.json({ received: true }, { status: 200 });
-  } catch (error) {
-    console.error('Error handling Stripe webhook:', error);
-    return NextResponse.json({ error: 'Failed to process Stripe webhook' }, { status: 400 });
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    const error = err as Error;
+    console.error(`Webhook error: ${error.message}`);
+    return NextResponse.json(
+      { error: 'Webhook processing failed' },
+      { status: 500 }
+    );
   }
 }
 
@@ -69,60 +84,76 @@ export async function POST(req: NextRequest) {
  * Handle subscription created event
  */
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
-  // Check if the subscription already exists in our database
-  const existingSubscription = await getSubscriptionByStripeId(subscription.id);
+  console.log(`Processing subscription created: ${subscription.id}`);
 
-  if (existingSubscription) {
-    console.log(`Subscription ${subscription.id} already exists, updating instead`);
-    return handleSubscriptionUpdated(subscription);
+  // Extract metadata to determine if this is a user or school subscription
+  const metadata = subscription.metadata || {};
+  const userId = metadata.user_id;
+  const schoolId = metadata.school_id;
+
+  if (!userId && !schoolId) {
+    console.error('Subscription created without user_id or school_id in metadata');
+    return;
   }
 
-  const customerId = subscription.customer as string;
-  const metadata = subscription.metadata || {};
-
   // Create a new subscription record
-  await createSubscription({
-    user_id: metadata.user_id || undefined,
-    school_id: metadata.school_id || undefined,
-    stripe_customer_id: customerId,
+  const subscriptionData: SubscriptionCreateParams = {
+    user_id: userId || undefined,
+    school_id: schoolId || undefined,
+    stripe_customer_id: subscription.customer as string,
     stripe_subscription_id: subscription.id,
-    status: subscription.status,
+    status: subscription.status as SubscriptionStatus,
     current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
     current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
     cancel_at_period_end: subscription.cancel_at_period_end,
-  });
+  };
 
-  console.log(`Created new subscription record for ${subscription.id}`);
+  await createSubscription(subscriptionData);
+  console.log(`Subscription created: ${subscription.id}`);
 }
 
 /**
  * Handle subscription updated event
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  // Update the subscription status
-  await handleSubscriptionStatusChange(
-    subscription.id,
-    subscription.status,
-    subscription.current_period_start,
-    subscription.current_period_end,
-    subscription.cancel_at_period_end
-  );
+  console.log(`Processing subscription updated: ${subscription.id}`);
 
-  console.log(`Updated subscription ${subscription.id} to status: ${subscription.status}`);
+  // Find the existing subscription
+  const existingSubscription = await getSubscriptionByStripeId(subscription.id);
+  if (!existingSubscription) {
+    console.error(`Subscription not found: ${subscription.id}`);
+    return;
+  }
+
+  // Update the subscription
+  await updateSubscription(existingSubscription.id, {
+    status: subscription.status as SubscriptionStatus,
+    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    cancel_at_period_end: subscription.cancel_at_period_end,
+  });
+
+  console.log(`Subscription updated: ${subscription.id}`);
 }
 
 /**
- * Handle subscription deleted (canceled) event
+ * Handle subscription deleted event
  */
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  // Update the subscription status to canceled
-  await handleSubscriptionStatusChange(
-    subscription.id,
-    subscription.status,
-    subscription.current_period_start,
-    subscription.current_period_end,
-    subscription.cancel_at_period_end
-  );
+  console.log(`Processing subscription deleted: ${subscription.id}`);
 
-  console.log(`Subscription ${subscription.id} has been canceled`);
+  // Find the existing subscription
+  const existingSubscription = await getSubscriptionByStripeId(subscription.id);
+  if (!existingSubscription) {
+    console.error(`Subscription not found: ${subscription.id}`);
+    return;
+  }
+
+  // Update the subscription status to canceled and set deleted_at
+  await updateSubscription(existingSubscription.id, {
+    status: 'canceled' as SubscriptionStatus,
+    deleted_at: new Date().toISOString(),
+  });
+
+  console.log(`Subscription deleted: ${subscription.id}`);
 }

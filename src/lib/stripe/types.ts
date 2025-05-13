@@ -1,15 +1,72 @@
 /**
- * Stripe subscription status
+ * Types for Stripe integration
  */
-export type SubscriptionStatus =
-  | 'active'
-  | 'canceled'
-  | 'incomplete'
-  | 'incomplete_expired'
-  | 'past_due'
-  | 'paused'
-  | 'trialing'
-  | 'unpaid';
+
+import type Stripe from 'stripe';
+
+/**
+ * Subscription status values
+ */
+export enum SubscriptionStatus {
+  ACTIVE = 'active',
+  CANCELED = 'canceled',
+  INCOMPLETE = 'incomplete',
+  INCOMPLETE_EXPIRED = 'incomplete_expired',
+  PAST_DUE = 'past_due',
+  TRIALING = 'trialing',
+  UNPAID = 'unpaid',
+}
+
+/**
+ * Subscription types for webhook events
+ */
+export type StripeWebhookEventType =
+  | 'customer.subscription.created'
+  | 'customer.subscription.updated'
+  | 'customer.subscription.deleted'
+  | 'invoice.payment_succeeded'
+  | 'invoice.payment_failed';
+
+/**
+ * Webhook event handler function type
+ */
+export type WebhookEventHandler = (
+  event: Stripe.Event,
+  eventData: Stripe.Subscription | Stripe.Invoice
+) => Promise<void>;
+
+/**
+ * Type for product pricing tiers
+ */
+export interface StripePriceTier {
+  id: string;
+  productId: string;
+  name: string;
+  description: string;
+  unitAmount: number;
+  currency: string;
+  interval: 'month' | 'year';
+}
+
+/**
+ * Type for Stripe products we offer
+ */
+export interface StripeProduct {
+  id: string;
+  name: string;
+  description: string;
+  priceTiers: StripePriceTier[];
+}
+
+/**
+ * Customer type containing Stripe customer details
+ */
+export interface StripeCustomer {
+  id: string;
+  email: string;
+  name?: string;
+  metadata?: Record<string, string>;
+}
 
 /**
  * Simplified Stripe subscription object for internal use
@@ -23,15 +80,6 @@ export interface StripeSubscription {
   cancelAtPeriodEnd: boolean;
   productId?: string;
   priceId?: string;
-}
-
-/**
- * Types of Stripe webhook events we handle
- */
-export enum StripeWebhookEventType {
-  SUBSCRIPTION_CREATED = 'customer.subscription.created',
-  SUBSCRIPTION_UPDATED = 'customer.subscription.updated',
-  SUBSCRIPTION_DELETED = 'customer.subscription.deleted',
 }
 
 /**

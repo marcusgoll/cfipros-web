@@ -1,7 +1,13 @@
+/**
+ * Subscription Types
+ *
+ * This module defines the types used for subscription management.
+ */
+
 import type { SubscriptionStatus } from '../stripe/types';
 
 /**
- * Database Subscription model
+ * Base subscription interface
  */
 export interface Subscription {
   id: string;
@@ -19,9 +25,9 @@ export interface Subscription {
 }
 
 /**
- * Subscription creation payload
+ * Subscription create params
  */
-export interface CreateSubscriptionPayload {
+export interface SubscriptionCreateParams {
   user_id?: string;
   school_id?: string;
   stripe_customer_id: string;
@@ -33,11 +39,13 @@ export interface CreateSubscriptionPayload {
 }
 
 /**
- * Subscription update payload
+ * Subscription update params
  */
-export interface UpdateSubscriptionPayload {
+export interface SubscriptionUpdateParams {
   status?: SubscriptionStatus;
   current_period_start?: string;
   current_period_end?: string;
   cancel_at_period_end?: boolean;
+  updated_at?: string;
+  deleted_at?: string | null;
 }

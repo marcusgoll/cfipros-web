@@ -1,231 +1,245 @@
-import { NextRequest } from 'next/server';
 import { POST } from '../route';
-import { constructEventFromWebhook } from '@/lib/stripe/client';
-import {
-  createSubscription,
-  getSubscriptionByStripeId,
-  handleSubscriptionStatusChange,
+import { NextRequest, NextResponse } from 'next/server';
+import { stripe } from '@/lib/stripe/client';
+import { 
+  createSubscription, 
+  getSubscriptionByStripeId, 
+  updateSubscription 
 } from '@/services/subscriptionService';
 
-// Mock dependencies
+// Mock the next/server modules
 jest.mock('next/server', () => ({
   NextRequest: jest.fn(),
   NextResponse: {
-    json: jest.fn((body, options) => ({ body, options })),
+    json: jest.fn().mockImplementation((body, options) => {
+      return { body, options };
+    }),
   },
 }));
 
-jest.mock('next/headers', () => ({
-  headers: jest.fn().mockReturnValue({
-    get: jest.fn().mockReturnValue('stripe-signature-mock'),
-  }),
-}));
-
+// Mock the Stripe client
 jest.mock('@/lib/stripe/client', () => ({
-  constructEventFromWebhook: jest.fn(),
+  stripe: {
+    webhooks: {
+      constructEvent: jest.fn(),
+    },
+  },
 }));
 
+// Mock the subscription service
 jest.mock('@/services/subscriptionService', () => ({
   createSubscription: jest.fn(),
   getSubscriptionByStripeId: jest.fn(),
-  handleSubscriptionStatusChange: jest.fn(),
-}));
-
-// Mock buffer function
-jest.mock('node:stream/consumers', () => ({
-  buffer: jest.fn().mockImplementation(async () => Buffer.from('payload')),
+  updateSubscription: jest.fn(),
 }));
 
 describe('Stripe Webhook Handler', () => {
-  // Store original environment variables
-  const originalEnv = { ...process.env };
+  // Environment variable setup
+  const originalEnv = process.env;
 
   beforeEach(() => {
+    process.env = { ...originalEnv };
+    process.env.STRIPE_WEBHOOK_SECRET = 'test_webhook_secret';
     jest.clearAllMocks();
-    // Setup environment variables
-    process.env.STRIPE_WEBHOOK_SECRET = 'test-webhook-secret';
   });
 
   afterEach(() => {
-    // Restore environment variables
-    process.env = { ...originalEnv };
+    process.env = originalEnv;
   });
 
-  it('should handle subscription created event', async () => {
-    // Setup mocks for this test
-    const mockEvent = {
-      type: 'customer.subscription.created',
-      data: {
-        object: {
-          id: 'sub_1234',
-          customer: 'cus_1234',
-          status: 'active',
-          current_period_start: 1684108800,
-          current_period_end: 1686787200,
-          cancel_at_period_end: false,
-          metadata: {
-            user_id: 'user-1234',
-          },
-        },
+  // Mock subscription data
+  const mockSubscription = {
+    id: 'sub_123456',
+    customer: 'cus_123456',
+    status: 'active',
+    current_period_start: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
+    current_period_end: Math.floor(Date.now() / 1000) + 3600 * 24 * 30, // 30 days from now
+    cancel_at_period_end: false,
+    metadata: {
+      user_id: 'user123',
+    },
+  };
+
+  const mockDbSubscription = {
+    id: '123e4567-e89b-12d3-a456-426614174000',
+    stripe_subscription_id: 'sub_123456',
+  };
+
+  it('should return 400 if webhook signature is missing', async () => {
+    // Mock request with missing signature
+    const req = {
+      text: jest.fn().mockResolvedValue('{}'),
+      headers: {
+        get: jest.fn().mockReturnValue(null), // No signature
       },
-    };
+    } as unknown as NextRequest;
 
-    (constructEventFromWebhook as jest.Mock).mockReturnValue(mockEvent);
-    (getSubscriptionByStripeId as jest.Mock).mockResolvedValue(null);
+    const response = await POST(req);
 
-    // Create mock request
-    const request = new NextRequest(new Request('https://example.com'));
-    Object.defineProperty(request, 'body', {
-      value: new ReadableStream({
-        start(controller) {
-          controller.enqueue(Buffer.from('payload'));
-          controller.close();
-        },
-      }),
-    });
-
-    // Call the endpoint
-    const response = await POST(request);
-
-    // Verify webhook was verified
-    expect(constructEventFromWebhook).toHaveBeenCalledWith('payload', 'stripe-signature-mock');
-
-    // Verify subscription was created
-    expect(createSubscription).toHaveBeenCalledWith({
-      user_id: 'user-1234',
-      stripe_customer_id: 'cus_1234',
-      stripe_subscription_id: 'sub_1234',
-      status: 'active',
-      current_period_start: expect.any(String),
-      current_period_end: expect.any(String),
-      cancel_at_period_end: false,
-    });
-
-    // Verify response
-    expect(response).toEqual({
-      body: { received: true },
-      options: { status: 200 },
-    });
-  });
-
-  it('should handle subscription updated event', async () => {
-    // Setup mocks for this test
-    const mockEvent = {
-      type: 'customer.subscription.updated',
-      data: {
-        object: {
-          id: 'sub_1234',
-          customer: 'cus_1234',
-          status: 'active',
-          current_period_start: 1684108800,
-          current_period_end: 1686787200,
-          cancel_at_period_end: false,
-        },
-      },
-    };
-
-    (constructEventFromWebhook as jest.Mock).mockReturnValue(mockEvent);
-
-    // Create mock request
-    const request = new NextRequest(new Request('https://example.com'));
-    Object.defineProperty(request, 'body', {
-      value: new ReadableStream({
-        start(controller) {
-          controller.enqueue(Buffer.from('payload'));
-          controller.close();
-        },
-      }),
-    });
-
-    // Call the endpoint
-    const response = await POST(request);
-
-    // Verify subscription was updated
-    expect(handleSubscriptionStatusChange).toHaveBeenCalledWith(
-      'sub_1234',
-      'active',
-      1684108800,
-      1686787200,
-      false
+    expect(NextResponse.json).toHaveBeenCalledWith(
+      { error: 'Missing webhook secret or signature' },
+      { status: 400 }
     );
-
-    // Verify response
-    expect(response).toEqual({
-      body: { received: true },
-      options: { status: 200 },
-    });
   });
 
-  it('should handle errors when webhook secret is missing', async () => {
-    // Set webhook secret to undefined instead of using delete
-    const tempEnv = { ...originalEnv };
-    process.env = { ...tempEnv };
-    process.env.STRIPE_WEBHOOK_SECRET = undefined;
+  it('should return 400 if webhook signature verification fails', async () => {
+    // Mock request
+    const req = {
+      text: jest.fn().mockResolvedValue('{}'),
+      headers: {
+        get: jest.fn().mockReturnValue('test_signature'),
+      },
+    } as unknown as NextRequest;
 
-    // Create mock request
-    const request = new NextRequest(new Request('https://example.com'));
-
-    // Call the endpoint
-    const response = await POST(request);
-
-    // Verify response
-    expect(response).toEqual({
-      body: { error: 'Stripe webhook secret is not configured' },
-      options: { status: 500 },
-    });
-  });
-
-  it('should handle errors when stripe signature is missing', async () => {
-    // Mock missing signature
-    jest.requireMock('next/headers').headers.mockReturnValueOnce({
-      get: jest.fn().mockReturnValue(null),
-    });
-
-    // Create mock request
-    const request = new NextRequest(new Request('https://example.com'));
-    Object.defineProperty(request, 'body', {
-      value: new ReadableStream({
-        start(controller) {
-          controller.enqueue(Buffer.from('payload'));
-          controller.close();
-        },
-      }),
-    });
-
-    // Call the endpoint
-    const response = await POST(request);
-
-    // Verify response
-    expect(response).toEqual({
-      body: { error: 'Stripe signature is missing from request headers' },
-      options: { status: 400 },
-    });
-  });
-
-  it('should handle webhook verification errors', async () => {
-    // Mock verification error
-    (constructEventFromWebhook as jest.Mock).mockImplementation(() => {
+    // Mock Stripe verification failure
+    (stripe.webhooks.constructEvent as jest.Mock).mockImplementation(() => {
       throw new Error('Invalid signature');
     });
 
-    // Create mock request
-    const request = new NextRequest(new Request('https://example.com'));
-    Object.defineProperty(request, 'body', {
-      value: new ReadableStream({
-        start(controller) {
-          controller.enqueue(Buffer.from('payload'));
-          controller.close();
-        },
+    const response = await POST(req);
+
+    expect(NextResponse.json).toHaveBeenCalledWith(
+      { error: 'Webhook signature verification failed: Invalid signature' },
+      { status: 400 }
+    );
+  });
+
+  it('should handle subscription.created event', async () => {
+    // Mock request
+    const req = {
+      text: jest.fn().mockResolvedValue('{}'),
+      headers: {
+        get: jest.fn().mockReturnValue('test_signature'),
+      },
+    } as unknown as NextRequest;
+
+    // Mock Stripe verification success
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      type: 'customer.subscription.created',
+      data: {
+        object: mockSubscription,
+      },
+    });
+
+    // Mock subscription creation
+    (createSubscription as jest.Mock).mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+    });
+
+    const response = await POST(req);
+
+    expect(createSubscription).toHaveBeenCalled();
+    expect(NextResponse.json).toHaveBeenCalledWith({ received: true });
+  });
+
+  it('should handle subscription.updated event', async () => {
+    // Mock request
+    const req = {
+      text: jest.fn().mockResolvedValue('{}'),
+      headers: {
+        get: jest.fn().mockReturnValue('test_signature'),
+      },
+    } as unknown as NextRequest;
+
+    // Mock Stripe verification success
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      type: 'customer.subscription.updated',
+      data: {
+        object: mockSubscription,
+      },
+    });
+
+    // Mock existing subscription
+    (getSubscriptionByStripeId as jest.Mock).mockResolvedValue(mockDbSubscription);
+    (updateSubscription as jest.Mock).mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+    });
+
+    const response = await POST(req);
+
+    expect(getSubscriptionByStripeId).toHaveBeenCalledWith('sub_123456');
+    expect(updateSubscription).toHaveBeenCalled();
+    expect(NextResponse.json).toHaveBeenCalledWith({ received: true });
+  });
+
+  it('should handle subscription.deleted event', async () => {
+    // Mock request
+    const req = {
+      text: jest.fn().mockResolvedValue('{}'),
+      headers: {
+        get: jest.fn().mockReturnValue('test_signature'),
+      },
+    } as unknown as NextRequest;
+
+    // Mock Stripe verification success
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      type: 'customer.subscription.deleted',
+      data: {
+        object: mockSubscription,
+      },
+    });
+
+    // Mock existing subscription
+    (getSubscriptionByStripeId as jest.Mock).mockResolvedValue(mockDbSubscription);
+    (updateSubscription as jest.Mock).mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+    });
+
+    const response = await POST(req);
+
+    expect(getSubscriptionByStripeId).toHaveBeenCalledWith('sub_123456');
+    expect(updateSubscription).toHaveBeenCalledWith(
+      '123e4567-e89b-12d3-a456-426614174000',
+      expect.objectContaining({
+        status: 'canceled',
+        deleted_at: expect.any(String),
+      })
+    );
+    expect(NextResponse.json).toHaveBeenCalledWith({ received: true });
+  });
+
+  it('should handle unrecognized event types', async () => {
+    // Mock request
+    const req = {
+      text: jest.fn().mockResolvedValue('{}'),
+      headers: {
+        get: jest.fn().mockReturnValue('test_signature'),
+      },
+    } as unknown as NextRequest;
+
+    // Mock Stripe verification success with unknown event type
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      type: 'unknown.event',
+      data: {
+        object: {},
+      },
+    });
+
+    const response = await POST(req);
+
+    // Should not call any handlers but still return success
+    expect(createSubscription).not.toHaveBeenCalled();
+    expect(getSubscriptionByStripeId).not.toHaveBeenCalled();
+    expect(updateSubscription).not.toHaveBeenCalled();
+    expect(NextResponse.json).toHaveBeenCalledWith({ received: true });
+  });
+
+  it('should return 500 if an unexpected error occurs', async () => {
+    // Mock request
+    const req = {
+      text: jest.fn().mockImplementation(() => {
+        throw new Error('Unexpected error');
       }),
-    });
+      headers: {
+        get: jest.fn().mockReturnValue('test_signature'),
+      },
+    } as unknown as NextRequest;
 
-    // Call the endpoint
-    const response = await POST(request);
+    const response = await POST(req);
 
-    // Verify response
-    expect(response).toEqual({
-      body: { error: 'Failed to process Stripe webhook' },
-      options: { status: 400 },
-    });
+    expect(NextResponse.json).toHaveBeenCalledWith(
+      { error: 'Webhook processing failed' },
+      { status: 500 }
+    );
   });
 });

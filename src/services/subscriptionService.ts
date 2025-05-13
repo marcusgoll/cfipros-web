@@ -3,15 +3,24 @@ import type {
   CreateSubscriptionPayload,
   Subscription,
   UpdateSubscriptionPayload,
+  SubscriptionCreateParams,
+  SubscriptionUpdateParams,
 } from '@/lib/types/subscription';
 import type { SubscriptionStatus } from '@/lib/stripe/types';
 import type { Database } from '@/lib/types/database';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 // Initialize Supabase client with service role key for admin access
 const supabaseAdmin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
   process.env.SUPABASE_SERVICE_ROLE_KEY as string
 );
+
+/**
+ * Subscription Service
+ *
+ * Provides methods to interact with subscriptions in the database.
+ */
 
 /**
  * Create a new subscription record in the database
@@ -36,23 +45,23 @@ export const createSubscription = async (
 /**
  * Get a subscription by its Stripe subscription ID
  */
-export const getSubscriptionByStripeId = async (
-  stripeSubscriptionId: string
-): Promise<Subscription | null> => {
-  const { data: subscription, error } = await supabaseAdmin
+export async function getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<Subscription | null> {
+  const supabase = createServerSupabaseClient();
+  
+  const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
     .eq('stripe_subscription_id', stripeSubscriptionId)
+    .is('deleted_at', null)
     .single();
-
-  if (error && error.code !== 'PGRST116') {
-    // PGRST116 is "no rows returned" error
-    console.error('Error fetching subscription:', error);
-    throw error;
+  
+  if (error) {
+    console.error('Error retrieving subscription:', error);
+    return null;
   }
-
-  return subscription;
-};
+  
+  return data as Subscription;
+}
 
 /**
  * Update a subscription record in the database
@@ -92,44 +101,68 @@ export const deleteSubscription = async (stripeSubscriptionId: string): Promise<
 };
 
 /**
- * Check if a user has an active subscription
+ * Get subscription by user ID
  */
-export const checkUserSubscription = async (userId: string): Promise<boolean> => {
-  const { data: subscription, error } = await supabaseAdmin
+export async function getSubscriptionByUserId(userId: string): Promise<Subscription | null> {
+  const supabase = createServerSupabaseClient();
+  
+  const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
     .eq('user_id', userId)
-    .eq('status', 'active')
     .is('deleted_at', null)
     .maybeSingle();
-
+  
   if (error) {
-    console.error('Error checking user subscription:', error);
-    throw error;
+    console.error('Error retrieving user subscription:', error);
+    return null;
   }
+  
+  return data as Subscription | null;
+}
 
-  return !!subscription;
-};
+/**
+ * Get subscription by school ID
+ */
+export async function getSubscriptionBySchoolId(schoolId: string): Promise<Subscription | null> {
+  const supabase = createServerSupabaseClient();
+  
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('school_id', schoolId)
+    .is('deleted_at', null)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('Error retrieving school subscription:', error);
+    return null;
+  }
+  
+  return data as Subscription | null;
+}
+
+/**
+ * Check if a user has an active subscription
+ */
+export async function hasActiveUserSubscription(userId: string): Promise<boolean> {
+  const subscription = await getSubscriptionByUserId(userId);
+  
+  return !!subscription && 
+    subscription.status === SubscriptionStatus.ACTIVE && 
+    new Date(subscription.current_period_end) > new Date();
+}
 
 /**
  * Check if a school has an active subscription
  */
-export const checkSchoolSubscription = async (schoolId: string): Promise<boolean> => {
-  const { data: subscription, error } = await supabaseAdmin
-    .from('subscriptions')
-    .select('*')
-    .eq('school_id', schoolId)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Error checking school subscription:', error);
-    throw error;
-  }
-
-  return !!subscription;
-};
+export async function hasActiveSchoolSubscription(schoolId: string): Promise<boolean> {
+  const subscription = await getSubscriptionBySchoolId(schoolId);
+  
+  return !!subscription && 
+    subscription.status === SubscriptionStatus.ACTIVE && 
+    new Date(subscription.current_period_end) > new Date();
+}
 
 /**
  * Handle a subscription status change from a Stripe webhook event
