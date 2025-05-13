@@ -44,10 +44,11 @@ describe('ProfilePage', () => {
         }),
       },
     };
+    // @ts-expect-error - Mocked client for testing purposes
     jest.mocked(createSupabaseServerClient).mockReturnValue(mockSupabase as MockedSupabaseClient);
 
     await ProfilePage();
-    
+
     // Check if redirect was called with '/login'
     expect(redirect).toHaveBeenCalledWith('/login');
   });
@@ -56,7 +57,7 @@ describe('ProfilePage', () => {
     // Mock Supabase responses for authenticated user
     const mockUser = { id: 'user-123', email: 'test@example.com' } as User;
     const mockProfile = { id: 'user-123', full_name: 'Test User' };
-    
+
     const mockSupabase = {
       auth: {
         getUser: jest.fn().mockResolvedValue({
@@ -75,29 +76,31 @@ describe('ProfilePage', () => {
         }),
       }),
     };
+    // @ts-expect-error - Mocked client for testing purposes
     jest.mocked(createSupabaseServerClient).mockReturnValue(mockSupabase as MockedSupabaseClient);
 
     // Try to render the component - it will not actually render in this test
     // since it's a server component, but we can check that it doesn't redirect
     await ProfilePage();
-    
+
     // Verify that it didn't redirect
     expect(redirect).not.toHaveBeenCalled();
-    
+
     // Verify that it attempted to fetch the profile
     expect(mockSupabase.from).toHaveBeenCalledWith('profiles');
   });
 
   it('creates a profile if none exists', async () => {
     // Mock Supabase responses for authenticated user with no profile
-    const mockUser = { 
-      id: 'user-123', 
+    const mockUser = {
+      id: 'user-123',
       email: 'test@example.com',
-      user_metadata: { full_name: 'Test User', role: 'STUDENT' }
+      user_metadata: { full_name: 'Test User', role: 'STUDENT' },
+      // @ts-expect-error - Intentionally adding simplified user object for testing
     } as User;
-    
+
     const mockProfile = { id: 'user-123', full_name: 'Test User' };
-    
+
     const mockSupabase = {
       auth: {
         getUser: jest.fn().mockResolvedValue({
@@ -124,12 +127,13 @@ describe('ProfilePage', () => {
         }),
       }),
     };
+    // @ts-expect-error - Mocked client for testing purposes
     jest.mocked(createSupabaseServerClient).mockReturnValue(mockSupabase as MockedSupabaseClient);
 
     await ProfilePage();
-    
+
     // Verify it tried to create a profile
     expect(mockSupabase.from).toHaveBeenCalledWith('profiles');
     expect(mockSupabase.from().upsert).toHaveBeenCalled();
   });
-}); 
+});

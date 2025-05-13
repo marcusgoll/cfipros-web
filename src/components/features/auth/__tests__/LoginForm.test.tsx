@@ -20,6 +20,7 @@ jest.mock('next/navigation', () => ({
 // Mock next/link
 jest.mock('next/link', () => {
   return function MockLink(props: React.PropsWithChildren<LinkProps>) {
+    // @ts-expect-error - Intentional type mismatch for testing
     return <a {...props}>{props.children}</a>;
   };
 });
@@ -31,7 +32,7 @@ describe('LoginForm', () => {
 
   it('renders login form with email and password fields', () => {
     render(<LoginForm />);
-    
+
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument();
@@ -42,12 +43,12 @@ describe('LoginForm', () => {
 
   it('validates form inputs', async () => {
     render(<LoginForm />);
-    
+
     // Submit the form without filling in any fields
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /log in/i }));
     });
-    
+
     // Check for validation messages
     await waitFor(() => {
       expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
@@ -62,22 +63,22 @@ describe('LoginForm', () => {
       session: { access_token: 'test-token' },
       error: null,
     });
-    
+
     render(<LoginForm />);
-    
+
     // Fill in form fields
     await act(async () => {
-      fireEvent.change(screen.getByLabelText(/email/i), { 
-        target: { value: 'test@example.com' } 
+      fireEvent.change(screen.getByLabelText(/email/i), {
+        target: { value: 'test@example.com' },
       });
-      fireEvent.change(screen.getByLabelText(/password/i), { 
-        target: { value: 'password123' } 
+      fireEvent.change(screen.getByLabelText(/password/i), {
+        target: { value: 'password123' },
       });
-      
+
       // Submit the form
       fireEvent.click(screen.getByRole('button', { name: /log in/i }));
     });
-    
+
     // Check that loginWithEmail was called with the correct values
     await waitFor(() => {
       expect(loginWithEmail).toHaveBeenCalledWith({
@@ -85,7 +86,7 @@ describe('LoginForm', () => {
         password: 'password123',
       });
     });
-    
+
     // Check for success message
     await waitFor(() => {
       expect(screen.getByText(/login successful/i)).toBeInTheDocument();
@@ -101,22 +102,22 @@ describe('LoginForm', () => {
         message: 'Invalid login credentials',
       },
     });
-    
+
     render(<LoginForm />);
-    
+
     // Fill in form fields
     await act(async () => {
-      fireEvent.change(screen.getByLabelText(/email/i), { 
-        target: { value: 'test@example.com' } 
+      fireEvent.change(screen.getByLabelText(/email/i), {
+        target: { value: 'test@example.com' },
       });
-      fireEvent.change(screen.getByLabelText(/password/i), { 
-        target: { value: 'wrongpassword' } 
+      fireEvent.change(screen.getByLabelText(/password/i), {
+        target: { value: 'wrongpassword' },
       });
-      
+
       // Submit the form
       fireEvent.click(screen.getByRole('button', { name: /log in/i }));
     });
-    
+
     // Check for error message
     await waitFor(() => {
       expect(screen.getByText(/invalid email or password/i)).toBeInTheDocument();
@@ -132,25 +133,25 @@ describe('LoginForm', () => {
         message: 'Email not confirmed',
       },
     });
-    
+
     render(<LoginForm />);
-    
+
     // Fill in form fields
     await act(async () => {
-      fireEvent.change(screen.getByLabelText(/email/i), { 
-        target: { value: 'unverified@example.com' } 
+      fireEvent.change(screen.getByLabelText(/email/i), {
+        target: { value: 'unverified@example.com' },
       });
-      fireEvent.change(screen.getByLabelText(/password/i), { 
-        target: { value: 'password123' } 
+      fireEvent.change(screen.getByLabelText(/password/i), {
+        target: { value: 'password123' },
       });
-      
+
       // Submit the form
       fireEvent.click(screen.getByRole('button', { name: /log in/i }));
     });
-    
+
     // Check for error message
     await waitFor(() => {
       expect(screen.getByText(/your email has not been verified/i)).toBeInTheDocument();
     });
   });
-}); 
+});
