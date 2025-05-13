@@ -8,7 +8,7 @@ import { ThemeToggle } from '../features/landing/ThemeToggle';
 import { usePostHog } from 'posthog-js/react';
 import { NavLink } from './NavLink';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useFeatureFlag } from '@/hooks/useFeatureFlag';
+import { useFeatureFlag } from '@/lib/feature-flags/client';
 
 // Navigation links with optional feature flags
 const NAV_LINKS = [
@@ -26,7 +26,8 @@ export function TopBar() {
   const posthog = usePostHog();
 
   // Check for enhanced navigation feature flag
-  const { enabled: enhancedNavEnabled } = useFeatureFlag('enhanced-nav-enabled', true);
+  const enhancedNavEnabled = useFeatureFlag('enhanced-nav-enabled');
+  const companyLinkEnabled = useFeatureFlag('company-link');
 
   useEffect(() => {
     const checkAuthState = async () => {
@@ -65,18 +66,18 @@ export function TopBar() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          {enhancedNavEnabled &&
-            NAV_LINKS.map((link) => (
-              <NavLink
-                key={link.href}
-                href={link.href}
-                title={link.title}
-                featureFlag={link.featureFlag}
-                isAuthenticated={isAuthenticated}
-              />
-            ))}
-        </nav>
+        {enhancedNavEnabled && (
+          <nav className="hidden md:flex gap-6 items-center">
+            <NavLink href="/why" title="Why CFIPros?" featureFlag="why-cfipros-link" />
+            <NavLink href="/products" title="Products" featureFlag="products-link" />
+            <NavLink href="/pricing" title="Pricing" featureFlag="pricing-link" />
+            <NavLink href="/docs" title="Docs" featureFlag="docs-link" />
+            <NavLink href="/community" title="Community" featureFlag="community-link" />
+            {companyLinkEnabled && (
+              <NavLink href="/company" title="Company" featureFlag="company-link" />
+            )}
+          </nav>
+        )}
 
         {/* Actions section */}
         <div className="flex items-center gap-4">

@@ -14,6 +14,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   testPathIgnorePatterns: [
     '<rootDir>/tests/e2e/',
-    '<rootDir>/node_modules/'
+    '<rootDir>/node_modules/',
+    '<rootDir>/src/components/layout/__tests__/test-utils.tsx'
   ]
 }; 

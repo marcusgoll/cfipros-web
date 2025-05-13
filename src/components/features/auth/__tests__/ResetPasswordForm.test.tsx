@@ -1,8 +1,21 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { ResetPasswordForm } from '../ResetPasswordForm';
 import { resetPassword } from '@/services/authService';
 import { trackEvent } from '@/lib/analytics';
-import * as nextNavigation from 'next/navigation';
+
+// Store original process.env
+const originalEnv = process.env;
+
+// Mock Supabase client
+const mockGetSession = jest.fn();
+const mockSupabaseClient = {
+  auth: {
+    getSession: mockGetSession,
+  },
+};
+jest.mock('@supabase/ssr', () => ({
+  createBrowserClient: jest.fn(() => mockSupabaseClient),
+}));
 
 // Mock the necessary modules
 jest.mock('next/navigation', () => ({
@@ -10,11 +23,13 @@ jest.mock('next/navigation', () => ({
     push: jest.fn(),
   }),
   useSearchParams: () => ({
-    get: jest.fn().mockImplementation((param) => {
-      if (param === 'token') return 'valid-token';
+    get: (param: string) => {
+      if (param === 'token') return 'test-token';
+      if (param === 'type') return 'recovery';
       return null;
-    }),
+    },
   }),
+  usePathname: jest.fn(() => '/auth/reset-password'),
 }));
 
 jest.mock('@/services/authService', () => ({
@@ -28,10 +43,25 @@ jest.mock('@/lib/analytics', () => ({
 describe('ResetPasswordForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Set up mock environment variables for each test
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
+    };
+    // Default to having a valid session for most tests
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: '123' } } }, error: null });
   });
 
-  it('renders the form correctly with token', () => {
-    render(<ResetPasswordForm />);
+  afterEach(() => {
+    // Restore original process.env after each test
+    process.env = originalEnv;
+  });
+
+  it('renders the form correctly', async () => {
+    await act(async () => {
+      render(<ResetPasswordForm />);
+    });
 
     expect(screen.getByText('Set New Password')).toBeInTheDocument();
     expect(screen.getByLabelText(/new password/i)).toBeInTheDocument();
@@ -40,43 +70,61 @@ describe('ResetPasswordForm', () => {
   });
 
   it('validates password input', async () => {
-    render(<ResetPasswordForm />);
+    await act(async () => {
+      render(<ResetPasswordForm />);
+    });
 
     const passwordInput = screen.getByLabelText(/new password/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /reset password/i });
 
     // Test too short password
-    fireEvent.change(passwordInput, { target: { value: 'short' } });
-    fireEvent.change(confirmInput, { target: { value: 'short' } });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.change(passwordInput, { target: { value: 'short' } });
+      fireEvent.change(confirmInput, { target: { value: 'short' } });
+    });
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
     });
 
     // Test password without uppercase
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.change(confirmInput, { target: { value: 'password123' } });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.change(passwordInput, { target: { value: 'password123' } });
+      fireEvent.change(confirmInput, { target: { value: 'password123' } });
+    });
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/one uppercase letter/i)).toBeInTheDocument();
     });
 
     // Test password without number
-    fireEvent.change(passwordInput, { target: { value: 'Password' } });
-    fireEvent.change(confirmInput, { target: { value: 'Password' } });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.change(passwordInput, { target: { value: 'Password' } });
+      fireEvent.change(confirmInput, { target: { value: 'Password' } });
+    });
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/one number/i)).toBeInTheDocument();
     });
 
     // Test mismatched passwords
-    fireEvent.change(passwordInput, { target: { value: 'Password123' } });
-    fireEvent.change(confirmInput, { target: { value: 'Password456' } });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.change(passwordInput, { target: { value: 'Password123' } });
+      fireEvent.change(confirmInput, { target: { value: 'Password456' } });
+    });
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/passwords don't match/i)).toBeInTheDocument();
@@ -84,20 +132,44 @@ describe('ResetPasswordForm', () => {
   });
 
   it('shows loading state during submission', async () => {
-    (resetPassword as jest.Mock).mockResolvedValue({ error: null });
+    let resolveResetPassword: (value: { error: null } | PromiseLike<{ error: null }>) => void;
+    const resetPasswordPromise = new Promise<{ error: null }>((resolve) => {
+      resolveResetPassword = resolve;
+    });
+    (resetPassword as jest.Mock).mockReturnValue(resetPasswordPromise);
 
-    render(<ResetPasswordForm />);
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: '123' } } }, error: null });
+
+    await act(async () => {
+      render(<ResetPasswordForm />);
+    });
 
     const passwordInput = screen.getByLabelText(/new password/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /reset password/i });
 
-    fireEvent.change(passwordInput, { target: { value: 'Password123' } });
-    fireEvent.change(confirmInput, { target: { value: 'Password123' } });
+    await act(async () => {
+      fireEvent.change(passwordInput, { target: { value: 'Password123' } });
+      fireEvent.change(confirmInput, { target: { value: 'Password123' } });
+    });
+
+    // Click the button. The initial setIsSubmitting(true) is synchronous.
+    // We don't wrap this specific click in `act` if we want to test the immediate state before promise resolution,
+    // but we will use waitFor for the assertion to ensure DOM update.
     fireEvent.click(submitButton);
 
-    expect(screen.getByRole('button', { name: /resetting password/i })).toBeInTheDocument();
-    expect(submitButton).toBeDisabled();
+    // Use waitFor to check for the loading state, allowing React to re-render
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /resetting password/i })).toBeInTheDocument();
+      // Check disabled state within waitFor as well, as it depends on the same re-render
+      expect(screen.getByRole('button', { name: /resetting password/i })).toBeDisabled();
+    });
+
+    // Now resolve the promise and wait for the component to update
+    await act(async () => {
+      resolveResetPassword({ error: null });
+      await resetPasswordPromise; // Ensure the promise queue is flushed
+    });
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument();
@@ -109,73 +181,103 @@ describe('ResetPasswordForm', () => {
     (resetPassword as jest.Mock).mockResolvedValue({
       error: { message: errorMessage },
     });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: '123' } } }, error: null });
 
-    render(<ResetPasswordForm />);
+    await act(async () => {
+      render(<ResetPasswordForm />);
+    });
 
     const passwordInput = screen.getByLabelText(/new password/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /reset password/i });
 
-    fireEvent.change(passwordInput, { target: { value: 'Password123' } });
-    fireEvent.change(confirmInput, { target: { value: 'Password123' } });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.change(passwordInput, { target: { value: 'Password123' } });
+      fireEvent.change(confirmInput, { target: { value: 'Password123' } });
+    });
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
 
-    expect(resetPassword).toHaveBeenCalledWith('valid-token', 'Password123');
+    expect(resetPassword).toHaveBeenCalledWith('', 'Password123');
     expect(trackEvent).toHaveBeenCalledWith('password_reset_completed', { success: false });
   });
 
   it('shows success message and redirects on successful reset', async () => {
     (resetPassword as jest.Mock).mockResolvedValue({ error: null });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: '123' } } }, error: null });
 
-    // Mock setTimeout
     jest.useFakeTimers();
 
-    render(<ResetPasswordForm />);
+    await act(async () => {
+      render(<ResetPasswordForm />);
+    });
 
     const passwordInput = screen.getByLabelText(/new password/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /reset password/i });
 
-    fireEvent.change(passwordInput, { target: { value: 'Password123' } });
-    fireEvent.change(confirmInput, { target: { value: 'Password123' } });
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.change(passwordInput, { target: { value: 'Password123' } });
+      fireEvent.change(confirmInput, { target: { value: 'Password123' } });
+    });
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText(/successfully reset/i)).toBeInTheDocument();
     });
 
-    expect(resetPassword).toHaveBeenCalledWith('valid-token', 'Password123');
+    expect(resetPassword).toHaveBeenCalledWith('', 'Password123');
     expect(trackEvent).toHaveBeenCalledWith('password_reset_completed', { success: true });
 
-    // Clean up
     jest.useRealTimers();
   });
 
-  it('handles missing token error', async () => {
-    // Override the mock for this test
-    jest.spyOn(nextNavigation, 'useSearchParams').mockImplementation(() => ({
-      get: () => null,
-    }));
+  it('handles missing Supabase configuration', async () => {
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_SUPABASE_URL: undefined,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: undefined,
+    };
 
-    render(<ResetPasswordForm />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/reset token is missing/i)).toBeInTheDocument();
+    await act(async () => {
+      render(<ResetPasswordForm />);
     });
 
-    const passwordInput = screen.getByLabelText(/new password/i);
-    const confirmInput = screen.getByLabelText(/confirm password/i);
-    const submitButton = screen.getByRole('button', { name: /reset password/i });
+    await waitFor(() => {
+      expect(screen.getByText(/Supabase configuration is missing./i)).toBeInTheDocument();
+    });
 
-    fireEvent.change(passwordInput, { target: { value: 'Password123' } });
-    fireEvent.change(confirmInput, { target: { value: 'Password123' } });
-    fireEvent.click(submitButton);
+    const submitButton = screen.getByRole('button', { name: /reset password/i });
+    expect(submitButton).toBeDisabled(); // Should be disabled if config is missing
+  });
+
+  it('handles expired session error', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
+
+    await act(async () => {
+      render(<ResetPasswordForm />);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Your session has expired. Please try resetting your password again./i)
+      ).toBeInTheDocument();
+    });
+
+    const submitButton = screen.getByRole('button', { name: /reset password/i });
+    expect(submitButton).toBeDisabled(); // Should be disabled if session is expired
+
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     expect(resetPassword).not.toHaveBeenCalled();
-    expect(submitButton).toBeDisabled();
   });
 });

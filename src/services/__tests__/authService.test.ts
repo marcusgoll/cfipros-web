@@ -37,7 +37,7 @@ describe('authService', () => {
       expect(mockSupabaseClient.auth.resetPasswordForEmail).toHaveBeenCalledWith(
         'test@example.com',
         {
-          redirectTo: 'https://example.com/auth/reset-password',
+          redirectTo: 'https://example.com/auth/callback?next=/auth/reset-password',
         }
       );
       expect(result.error).toBeNull();

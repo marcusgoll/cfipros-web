@@ -50,6 +50,10 @@ export function ForgotPasswordForm() {
           type: 'error',
           message: result.error.message,
         });
+        // Track the failed event for server-side errors
+        trackEvent('password_reset_requested', {
+          success: false,
+        });
       } else {
         setFormMessage({
           type: 'success',

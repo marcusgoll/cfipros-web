@@ -3,7 +3,8 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { usePostHog } from 'posthog-js/react';
-import { useFeatureFlag } from '@/hooks/useFeatureFlag';
+import { useFeatureFlag } from '@/lib/feature-flags/client';
+import { type FeatureFlag } from '@/lib/feature-flags';
 import { cn } from '@/lib/utils';
 
 interface NavLinkProps {
@@ -17,6 +18,7 @@ interface NavLinkProps {
   className?: string;
   variant?: 'topbar' | 'footer';
   exact?: boolean;
+  onClick?: () => void;
 }
 
 export function NavLink({
@@ -30,13 +32,16 @@ export function NavLink({
   className,
   variant = 'topbar',
   exact = false,
+  onClick,
 }: NavLinkProps) {
   const pathname = usePathname();
   const posthog = usePostHog();
   const isActive = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
+  // Call useFeatureFlag unconditionally at the top level
+  const isFlagEnabled = useFeatureFlag(featureFlag as FeatureFlag);
   // Check feature flag if provided
-  const { enabled: featureFlagEnabled } = useFeatureFlag(featureFlag);
+  const featureFlagEnabled = featureFlag ? isFlagEnabled : true;
 
   // If this link requires auth and user is not authenticated, don't show it
   if (requireAuth && !isAuthenticated) {
@@ -60,16 +65,23 @@ export function NavLink({
     });
   };
 
+  const handleInternalClick = () => {
+    trackNavClick();
+    if (onClick) {
+      onClick();
+    }
+  };
+
   // Styles based on variant
   const topbarLinkStyles = cn(
     'text-sm transition-colors',
-    isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground',
+    isActive ? 'text-primary font-medium' : 'text-muted-foreground hover:text-primary',
     className
   );
 
   const footerLinkStyles = cn(
     'text-sm transition-colors',
-    isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+    isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary',
     className
   );
 
@@ -79,7 +91,7 @@ export function NavLink({
     <Link
       href={href}
       className={styles}
-      onClick={trackNavClick}
+      onClick={handleInternalClick}
       aria-current={isActive ? 'page' : undefined}
     >
       {title}
