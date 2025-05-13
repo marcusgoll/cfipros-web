@@ -1,71 +1,49 @@
-'use client';
+"use client"
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button"
+import { usePostHog } from "posthog-js/react"
+import { ChevronRight, FileText } from "lucide-react"
 
-export default function HeroSection() {
+export function HeroSection() {
+  const posthog = usePostHog()
+
+  const trackCTA = (ctaType: string) => {
+    posthog?.capture("landing_cta_clicked", {
+      section: "hero",
+      cta_type: ctaType
+    })
+  }
+
   return (
-    <section
-      className="relative min-h-[80vh] flex flex-col justify-center bg-gradient-to-r from-sky-100 via-blue-50 to-sky-100 dark:from-gray-900 dark:via-blue-950 dark:to-gray-900"
-      aria-labelledby="hero-heading"
-    >
-      {/* Hero Background - Can be replaced with a real aviation image */}
-      <div className="absolute inset-0 overflow-hidden -z-10" aria-hidden="true">
-        <Image
-          src="/hero-aviation-background.jpg"
-          alt="Aviation background with aircraft in sky"
-          fill
-          priority
-          className="object-cover opacity-20"
-          sizes="100vw"
-        />
-      </div>
-
-      <div className="container mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-12">
-        <div className="flex-1 space-y-6 text-center md:text-left">
-          <h1
-            id="hero-heading"
-            className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white"
-          >
-            Elevate Your Flight Training Experience
+    <section className="py-20 md:py-32 border-b border-border">
+      <div className="container px-4 md:px-6 mx-auto">
+        <div className="flex flex-col items-center text-center max-w-[800px] mx-auto">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+            ACS Extractor: <span className="text-highlight">Analyze FAA Knowledge Tests</span> with precision
           </h1>
-
-          <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-2xl">
-            Connect flight instructors, students, and schools on a single platform designed to
-            streamline training, certification, and career advancement.
+          <p className="text-xl text-muted-foreground mb-12 max-w-[600px]">
+            Automatically extract and <span className=" font-medium">categorize</span> FAA Knowledge Test questions according to <span className="font-medium">Airman Certification Standards</span>, identify weak areas, and create <span className="font-medium">targeted training plans</span>.
           </p>
-
-          <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <Button
-              asChild
-              size="lg"
-              className="bg-blue-700 hover:bg-blue-800 text-white font-medium"
-            >
-              <Link href="/sign-up">Get Started Now</Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-gray-400 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-            >
-              <Link href="#features">Learn More</Link>
+          <div className="mb-16">
+            <Button onClick={() => trackCTA("get-started")}
+              className="bg-primary hover:bg-highlight/90 text-white text-lg py-6 px-8 rounded-lg shadow-lg shadow-highlight/20 transform transition-transform hover:scale-105">
+              Get Started – Free
+              <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
-        </div>
-
-        <div className="flex-1 relative h-[300px] md:h-[400px] w-full rounded-lg overflow-hidden shadow-2xl">
-          <Image
-            src="/hero-cockpit.jpg"
-            alt="Flight training cockpit view showing instruments and controls"
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
+          {/* ACS Extractor visualization */}
+          <div className="relative w-full max-w-[680px] aspect-video bg-card rounded-lg border border-border flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-highlight/10 rounded-lg" />
+            <div className="relative z-10 flex flex-col items-center justify-center gap-3 p-6">
+              <FileText className="h-12 w-12 text-highlight mb-2" />
+              <h3 className="text-xl font-medium">ACS Extractor</h3>
+              <p className="text-sm text-muted-foreground text-center max-w-[400px]">
+                Upload your FAA Knowledge Test results and get an instant breakdown of performance by ACS codes, identifying areas for improvement.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
-  );
-}
+  )
+} 

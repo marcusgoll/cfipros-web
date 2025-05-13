@@ -2,11 +2,15 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { AnalyticsProvider } from '@/providers/AnalyticsProvider';
 import { PostHogProvider } from '@/providers/PostHogProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'CFI PROS',
-  description: 'The platform for flight instructors and students',
-};
+  title: "CFIPros - Advanced Flight Training Analytics",
+  description: "Helping flight instructors build successful pilots with data-driven insights",
+}
 
 export default function RootLayout({
   children,
@@ -14,14 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <PostHogProvider>
-          <AnalyticsProvider>
-            {children}
-          </AnalyticsProvider>
-        </PostHogProvider>
-      </body>
+    <html lang="en" suppressHydrationWarning>
+      <PostHogProvider>
+        <AnalyticsProvider>
+          <ThemeProvider>
+            <body className={inter.className}>{children}</body>
+          </ThemeProvider>
+        </AnalyticsProvider>
+      </PostHogProvider>
     </html>
   );
 }

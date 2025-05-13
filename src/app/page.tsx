@@ -1,26 +1,42 @@
-import { Metadata } from 'next';
-import HeroSection from '@/components/features/landing/HeroSection';
-import FeaturesSection from '@/components/features/landing/FeaturesSection';
-import RoleSpecificBenefits from '@/components/features/landing/RoleSpecificBenefits';
-import TestimonialSection from '@/components/features/landing/TestimonialSection';
-import PricingSection from '@/components/features/landing/PricingSection';
-import FAQSection from '@/components/features/landing/FAQSection';
+import type { Metadata } from "next"
+import { TopBar } from "@/components/layout/TopBar"
+import { HeroSection } from "@/components/features/landing/HeroSection"
+import { ProductMatrix } from "@/components/features/landing/ProductMatrix"
+import { ValueSection } from "@/components/features/landing/ValueSection"
+import { RoadmapSection } from "@/components/features/landing/RoadmapSection"
+import { CallToAction } from "@/components/features/landing/CallToAction"
+import { Footer } from "@/components/layout/Footer"
+import { SectionObserver } from "@/components/features/landing/SectionObserver"
 
 export const metadata: Metadata = {
-  title: 'CFIPros - Flight Training Platform',
-  description:
-    'Connect with flight instructors, track your training progress, and manage your flight school with our all-in-one platform.',
-};
+  title: "CFIPros - Flight Training Analytics Platform",
+  description: "Helping flight instructors build successful pilots with data-driven insights and training tools.",
+  keywords: "flight training, CFI, flight instructor, aviation, training analytics, pilot training",
+}
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <main className="flex flex-col w-full">
-      <HeroSection />
-      <FeaturesSection />
-      <RoleSpecificBenefits />
-      <TestimonialSection />
-      <PricingSection />
-      <FAQSection />
-    </main>
-  );
+    <div className="min-h-screen flex flex-col">
+      <TopBar />
+      <main className="flex-grow">
+        <SectionObserver sectionId="hero" sectionName="Hero">
+          <HeroSection />
+        </SectionObserver>
+        <SectionObserver sectionId="products" sectionName="Products">
+          <ProductMatrix />
+        </SectionObserver>
+        <SectionObserver sectionId="value" sectionName="Value Proposition">
+          <ValueSection />
+        </SectionObserver>
+        <SectionObserver sectionId="roadmap" sectionName="Roadmap">
+          <RoadmapSection />
+        </SectionObserver>
+        <SectionObserver sectionId="cta" sectionName="Call To Action">
+          <CallToAction />
+        </SectionObserver>
+      </main>
+
+      <Footer />
+    </div>
+  )
 }

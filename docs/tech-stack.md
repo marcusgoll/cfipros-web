@@ -18,6 +18,7 @@ This document outlines the specific technologies, frameworks, and services chose
 | **OCR Service** | Google Gemini API                             | Gemini 2.5 Flash                                      | Text extraction from PDF/image FAA Knowledge Test results.                              | PRD requirement. Chosen for its balance of performance, accuracy, and cost for document understanding tasks.               |
 | **Payment Processing**| Stripe                                        | Latest stable API/SDK versions                        | Handling CFI and Flight School subscriptions.                                         | PRD requirement. Robust, developer-friendly, widely adopted.                                                                 |
 | **Email Service** | Resend                                        | Latest stable API/SDK versions                        | Transactional emails (account verification, password resets, report sharing, invitations). | PRD requirement. Modern email API, good deliverability, developer-focused.                                                   |
+| **Analytics & Feature Flags** | PostHog                                       | Latest stable API/SDK versions                        | User analytics, event tracking, and feature flag management.                            | Provides both analytics and feature flags in one platform. Open-source with cloud hosting option. Simplifies implementation.  |
 | **PDF Generation** | Puppeteer                                     | Latest Stable                                         | Library for controlling a headless Chrome/Chromium instance to generate PDFs.           | Chosen for complex layout control needed for formatted PDF reports with conditional summaries, running in a serverless function. |
 | **Styling** | Tailwind CSS                                  | Latest Stable (e.g., 3.x)                             | Utility-first CSS framework for rapid UI development.                                   | Aligns with modern Next.js development, "calm UX" can be achieved with careful theming. Base for shadcn/ui.                  |
 | **UI Components** | shadcn/ui                                     | Latest Stable                                         | Collection of beautifully designed, accessible, and customizable components built with Radix UI and Tailwind CSS. | Accelerates UI development, ensures accessibility, and aligns with "calm UX" goals by providing well-crafted primitives.     |
@@ -34,6 +35,9 @@ This document outlines the specific technologies, frameworks, and services chose
 * **Version Pinning:** Specific versions of libraries (npm packages) will be pinned in `package.json` and managed via `package-lock.json` (or `yarn.lock` / `pnpm-lock.yaml` depending on chosen package manager) to ensure reproducible builds.
 * **Flexibility:** While "Latest Stable" is indicated for many evolving technologies (like Next.js, Node.js), the project will target versions that are well-supported by the ecosystem (especially Vercel) at the time of active development.
 * **State Management:** Zustand is an initial recommendation if React Context becomes insufficient. This can be confirmed or adjusted based on team preference as development progresses.
+* **PostHog Usage:** PostHog will be used for two primary purposes:
+  * **Analytics:** Track page views and user interactions across the platform to gain insights into user behavior
+  * **Feature Flags:** Manage feature rollouts, enabling gradual deployment of new functionality and A/B testing
 
 ## Change Log
 
@@ -42,5 +46,6 @@ This document outlines the specific technologies, frameworks, and services chose
 | Initial draft           | 2025-05-09 | 0.1     | First draft based on PRD and user feedback                         | Architect Gem  |
 | Added shadcn/ui         | 2025-05-09 | 0.2     | Incorporated shadcn/ui for UI components per user request          | Architect Gem  |
 | Corrected Gemini Version| 2025-05-09 | 0.3     | Updated OCR Service to Gemini 2.5 Flash API per user specification | Architect Gem  |
+| Added PostHog           | 2025-05-10 | 0.4     | Added PostHog for analytics and feature flag management            | Architect Gem  |
 
 ---

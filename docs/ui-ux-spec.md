@@ -174,11 +174,16 @@ This document defines the user experience (UX) goals, information architecture (
 ## Branding & Style Guide Reference
 
 - **Color Palette:**
-  - Primary: Soft Blue (e.g., `#A0C4FF` - calm, trustworthy)
-  - Secondary: Slate Gray (e.g., `#6B7280` - professional, grounding)
-  - Accent: Blush/Pale Peach (e.g., `#FFDAB9` - for subtle highlights or CTAs if used sparingly)
-  - Neutral/Backgrounds: Off-White (e.g., `#F8F9FA`), Light Gray (e.g., `#E9ECEF`)
-  - Feedback Colors: Green for success (e.g., `#73D487`), Red for error (e.g., `#FF6B6B`), Yellow for warning, Blue for info.
+| Token        | Hex                      | Usage                     |
+| ------------ | ------------------------ | ------------------------- |
+| `primary`    | `#F47C20`                | Buttons, highlighted text |
+| `secondary`  | `#2A78B8`                | Minor accents, links      |
+| `background` | `#1C1C24`                | Body BG                   |
+| `card`       | `#26262F`                | Feature card BG           |
+| `text`       | `#FFFFFF`                | Headings & body           |
+| `muted`      | `#A1A1AA`                | Secondary text            |
+| `border`     | `rgba(255,255,255,0.08)` | Hairline dividers         |
+  - Feedback Colors: Green for success, Red for error, Yellow for warning, Blue for info.
   - _Specific hex codes are illustrative and need refinement by a designer._
 - **Typography:**
   - Primary Font Family: Inter (sans-serif, modern, highly readable).

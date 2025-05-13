@@ -31,6 +31,11 @@ This document outlines the environment variables required for the CFIPros applic
 | **Resend** |                                                                             |                                                          |           |            |                                                                                                      |
 | `RESEND_API_KEY`                   | API Key for Resend email service.                                           | `re_...`                                                 | Yes       | Yes        | Used by the backend for sending transactional emails.                                                |
 | `RESEND_FROM_EMAIL`                | The "From" email address for emails sent by the application.                | `noreply@cfipros.com`                                    | Yes       | No         | Must be a verified domain/sender in Resend.                                                          |
+| **PostHog Analytics & Feature Flags** |                                                                             |                                                          |           |            |                                                                                                      |
+| `NEXT_PUBLIC_POSTHOG_KEY`          | Public API key for PostHog analytics.                                       | `phc_...`                                                | Yes       | No         | Used for analytics tracking across the application.                                                  |
+| `NEXT_PUBLIC_POSTHOG_HOST`         | Host URL for PostHog instance.                                              | `https://us.posthog.com` or self-hosted URL              | Yes       | No         | Endpoint where analytics data is sent.                                                               |
+| `NEXT_PUBLIC_POSTHOG_DEBUG`        | Enable PostHog debug mode.                                                  | `true` / `false`                                         | No        | No         | Set to true in development for detailed logging of analytics events.                                 |
+| `POSTHOG_API_SECRET`               | Server-side PostHog API key (for feature flag management).                  | `phc_...`                                                | Yes       | Yes        | Used by server components to evaluate feature flags or send server-side events.                      |
 | **Application Specific** |                                                                             |                                                          |           |            |                                                                                                      |
 | `APP_SECRET`                       | A secret key for general application purposes (e.g., signing invitation tokens). | `generate_a_strong_random_string`                        | Yes       | Yes        | Used for hashing/signing internal tokens or data.                                                    |
 | `NEXT_PUBLIC_MCP_API_URL`          | Base URL for the MCP API (if different from app URL, likely not for V1).    | `https://cfipros.com/api/mcp/v1`                         | No        | No         | Primarily for documentation or if MCP clients are external to the Next.js app.                     |
@@ -40,6 +45,7 @@ This document outlines the environment variables required for the CFIPros applic
 
 * **`NEXT_PUBLIC_` Prefix:** Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser and should not contain sensitive information.
 * **Security:** Sensitive variables (API keys, secrets) must be managed securely and never committed to the repository. Use Vercel's environment variable management for deployed environments.
+* **PostHog Configuration:** PostHog is used for both analytics tracking and feature flags. Client-side components use the `NEXT_PUBLIC_POSTHOG_KEY` while server-side components use the `POSTHOG_API_SECRET` for feature flag evaluation.
 * **`.env.example` File:** An `.env.example` file should be maintained in the root of the project. It should list all required environment variables with placeholder or example values (but no actual secrets). Developers can copy this to `.env.local` and fill in their actual values for local development. Example:
     ```ini
     # .env.example
@@ -64,6 +70,12 @@ This document outlines the environment variables required for the CFIPros applic
     # Resend
     RESEND_API_KEY=your_resend_api_key
     RESEND_FROM_EMAIL=noreply@example.com
+    
+    # PostHog Analytics & Feature Flags
+    NEXT_PUBLIC_POSTHOG_KEY=your_posthog_public_key
+    NEXT_PUBLIC_POSTHOG_HOST=https://us.posthog.com
+    NEXT_PUBLIC_POSTHOG_DEBUG=false
+    POSTHOG_API_SECRET=your_posthog_api_secret # For backend use only
 
     # Application Specific
     APP_SECRET=a_very_strong_random_secret_for_dev
@@ -73,8 +85,9 @@ This document outlines the environment variables required for the CFIPros applic
 
 ## Change Log
 
-| Change        | Date       | Version | Description                  | Author         |
-| :------------ | :--------- | :------ | :--------------------------- | :------------- |
-| Initial draft | 2025-05-09 | 0.1     | First draft of environment variables list | Architect Gem  |
+| Change                  | Date       | Version | Description                                             | Author         |
+| :---------------------- | :--------- | :------ | :------------------------------------------------------ | :------------- |
+| Initial draft           | 2025-05-09 | 0.1     | First draft of environment variables list               | Architect Gem  |
+| Added PostHog variables | 2025-05-10 | 0.2     | Added PostHog analytics and feature flag configuration  | Architect Gem  |
 
 ---

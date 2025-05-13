@@ -92,13 +92,13 @@ export default async function DashboardPage() {
   }
   
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container-custom px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Student Dashboard</h1>
+        <h1 className="text-3xl font-bold text-brand-light">Student Dashboard</h1>
         <div className="flex items-center space-x-4">
           <Link 
             href="/profile" 
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-brand-accent hover:text-brand-accent/80"
           >
             Profile Settings
           </Link>
@@ -107,24 +107,24 @@ export default async function DashboardPage() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Welcome, {studentData?.full_name || user.email}</h2>
-          <p className="text-gray-600 dark:text-gray-300">
+        <div className="bg-[#252530] p-6 rounded-lg border border-[#2A2A33]">
+          <h2 className="text-xl font-semibold mb-4 text-brand-light">Welcome, {studentData?.full_name || user.email}</h2>
+          <p className="text-brand-light/80">
             This is your student dashboard. Here you can track your progress, manage your courses, and more.
           </p>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
-          <p className="text-gray-600 dark:text-gray-300">
+        <div className="bg-[#252530] p-6 rounded-lg border border-[#2A2A33]">
+          <h2 className="text-xl font-semibold mb-4 text-brand-light">Your Progress</h2>
+          <p className="text-brand-light/80">
             Track your training progress and upcoming lessons here.
           </p>
           {/* Progress tracking components would go here */}
         </div>
         
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Upcoming Classes</h2>
-          <p className="text-gray-600 dark:text-gray-300">
+        <div className="bg-[#252530] p-6 rounded-lg border border-[#2A2A33]">
+          <h2 className="text-xl font-semibold mb-4 text-brand-light">Upcoming Classes</h2>
+          <p className="text-brand-light/80">
             View your scheduled classes and training sessions.
           </p>
           {/* Calendar or list of upcoming classes would go here */}
