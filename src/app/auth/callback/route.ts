@@ -1,7 +1,5 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-
 import type { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -9,80 +7,70 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const cookieStore = cookies();
+  const next = requestUrl.searchParams.get('next');
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Supabase URL or Anon Key is missing.');
-    return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error?error=Supabase+config+missing`);
-  }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value, ...options });
-        } catch (error) {
-          console.warn('Failed to set cookie in Route Handler (set operation)', error);
-        }
-      },
-      remove(name: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value: '', ...options });
-        } catch (error) {
-          console.warn('Failed to remove cookie in Route Handler (remove operation)', error);
-        }
-      },
-    },
-  });
+  // Use the centralized Supabase server client from /lib
+  // This ensures cookie handling is consistent and correct
+  const supabase = createSupabaseServerClient();
 
   if (code) {
+    console.log('[Auth Callback] Code received, attempting to exchange for session.');
+
     try {
-      await supabase.auth.exchangeCodeForSession(code);
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      console.log(
+        '[Auth Callback] Code exchange completed. Session data present:',
+        !!data.session,
+        'Error:',
+        error?.message || 'None'
+      );
+
+      if (error) {
+        console.error(
+          '[Auth Callback] Error exchanging code for session:',
+          JSON.stringify(error, null, 2)
+        );
+        return NextResponse.redirect(
+          `${requestUrl.origin}/auth/auth-code-error?error=${encodeURIComponent(error.message)}`
+        );
+      }
+      // If successful, the session is set in cookies by the createSupabaseServerClient's cookie handler
     } catch (error) {
-      console.error('Error exchanging code for session:', error);
-      return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error?error=OAuth+code+exchange+failed`);
+      console.error(
+        '[Auth Callback] Exception during code exchange:',
+        error instanceof Error ? error.message : error
+      );
+      return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error?error=Server+error`);
     }
-  }
 
-  const { data: { user }, error: getUserError } = await supabase.auth.getUser();
+    // Get the user session for redirection
+    console.log('[Auth Callback] Attempting to get session for redirection.');
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-  if (getUserError || !user) {
-    console.error('Error getting user or no user found after OAuth:', getUserError);
-    return NextResponse.redirect(`${requestUrl.origin}/login?error=OAuth+authentication+failed`);
-  }
-  
-  let redirectTo = '/';
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, role')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError && profileError.code !== 'PGRST116') {
-    console.error('Error fetching profile:', profileError);
-    return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error?error=Profile+fetch+failed`);
-  }
-
-  if (!profile) {
-    redirectTo = '/profile-setup';
-  } else {
-    if (profile.role === 'CFI') {
-      redirectTo = '/dashboard/cfi';
-    } else {
-      redirectTo = '/dashboard';
+    if (!session) {
+      console.error('[Auth Callback] No session found after code exchange');
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=No+session+found`);
     }
-  }
-  
-  if (!redirectTo.startsWith('http')) {
-    redirectTo = `${requestUrl.origin}${redirectTo.startsWith('/') ? '' : '/'}${redirectTo}`;
+
+    console.log('[Auth Callback] Session retrieved. User ID:', session.user.id);
+
+    // Handle different flows based on the 'next' parameter
+    if (next?.includes('/auth/reset-password')) {
+      console.log('[Auth Callback] Password reset flow: Redirecting to reset-password page');
+      return NextResponse.redirect(`${requestUrl.origin}/auth/reset-password`);
+    }
+
+    const redirectTo = next || '/dashboard';
+    console.log('[Auth Callback] Standard login flow: Redirecting to', redirectTo);
+    return NextResponse.redirect(`${requestUrl.origin}${redirectTo}`);
   }
 
-  return NextResponse.redirect(redirectTo);
-} 
+  // If no code provided, or if an error occurred before this point and wasn't caught,
+  // redirect to a generic error page or the login page.
+  console.warn(
+    '[Auth Callback] No code found or an unhandled error occurred. Redirecting to login.'
+  );
+  return NextResponse.redirect(`${requestUrl.origin}/login?error=Invalid+callback`);
+}

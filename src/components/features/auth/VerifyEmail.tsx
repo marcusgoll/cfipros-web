@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { createBrowserClient } from '@/lib/supabase/client'; // Use client-side Supabase client
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'; // Use client-side Supabase client
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -14,7 +14,7 @@ function VerifyEmailContent() {
     'verifying'
   );
   const [message, setMessage] = useState<string>('Verifying your email, please wait...');
-  const supabase = createBrowserClient();
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     const token_hash = searchParams.get('token_hash');

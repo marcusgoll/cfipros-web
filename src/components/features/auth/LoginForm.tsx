@@ -75,7 +75,7 @@ export function LoginForm() {
           type: 'success',
           message: 'Login successful! Redirecting to your dashboard...',
         });
-        
+
         // Give the user a moment to see the success message before redirecting
         setTimeout(() => {
           router.refresh(); // Update session state
@@ -124,7 +124,7 @@ export function LoginForm() {
           )}
         />
         <div className="text-sm">
-          <Link href="/forgot-password" className="text-blue-600 hover:underline">
+          <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
             Forgot password?
           </Link>
         </div>
@@ -151,4 +151,4 @@ export function LoginForm() {
       </form>
     </Form>
   );
-} 
+}

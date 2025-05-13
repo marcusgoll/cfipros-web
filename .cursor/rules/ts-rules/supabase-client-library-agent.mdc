@@ -1,0 +1,114 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Supabase Client Library & Cookie Handling Standards
+
+## Critical Rules
+
+- **Always use the centralized Supabase client wrappers:**
+  - For server-side code (Server Components, API Routes, Server Actions), **ALWAYS** use `createSupabaseServerClient` from `@/lib/supabase/server.ts`.
+  - For client-side code (Client Components), **ALWAYS** use `createSupabaseBrowserClient` from `@/lib/supabase/client.ts` (or the equivalent if named differently, e.g., `createBrowserClient` directly from `@supabase/ssr` if a wrapper is not used).
+- **NEVER re-initialize Supabase client cookie handlers** in individual files (routes, services, components). Rely on the centralized wrappers for correct, consistent, and asynchronous cookie management.
+- **NEVER use the deprecated `@supabase/auth-helpers-nextjs` package.** Stick to `@supabase/ssr`.
+- **Password Reset Flow:**
+  - Ensure `exchangeCodeForSession(code)` is called in the auth callback route *before* any redirection to the password reset page.
+  - The subsequent `updateUser({ password })` call (e.g., in `resetPassword` service) should rely on the session established by `exchangeCodeForSession` and managed by the centralized `createSupabaseServerClient`.
+- **Asynchronous Cookie Operations:** Be aware that cookie operations in Next.js (especially with `next/headers`) are asynchronous. The centralized wrappers handle this; direct `cookies()` calls must be `await`ed if ever used outside the wrappers (which should be rare).
+- **PKCE Flow:** Consistent cookie handling via centralized clients is critical for the PKCE (Proof Key for Code Exchange) flow to work correctly, preventing "code verifier" errors.
+- **getSession vs. getUser:** Prefer `supabase.auth.getUser()` for fetching user data in server-side contexts as it revalidates the session with the Supabase server. `supabase.auth.getSession()` can be used but be mindful that its data comes directly from storage (cookies) and might not be fully up-to-date or validated for critical operations.
+
+## Examples
+
+<example>
+// CORRECT: Using the centralized server client in an API Route or Server Action
+// File: src/app/api/some-route/route.ts OR src/services/someService.ts
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+
+export async function POST(request: Request) {
+  const supabase = createSupabaseServerClient();
+  // Use the client for auth or database operations...
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) { /* handle unauthorized */ }
+  // ...
+}
+
+// CORRECT: Using the centralized browser client in a Client Component
+// File: src/components/features/someFeature/MyClientComponent.tsx
+'use client';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'; // Or your equivalent
+import { useEffect, useState } from 'react';
+
+export function MyClientComponent() {
+  const supabase = createSupabaseBrowserClient();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    fetchUser();
+  }, [supabase]);
+  // ...
+}
+
+// CORRECT: Auth Callback using centralized server client
+// File: src/app/auth/callback/route.ts
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const supabase = createSupabaseServerClient();
+  const { searchParams } = new URL(request.url);
+  const code = searchParams.get('code');
+
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code);
+  }
+  // Redirect logic...
+  return NextResponse.redirect(/* ... */);
+}
+</example>
+
+<example type="invalid">
+// INCORRECT: Re-initializing cookie handlers in a server-side file
+// File: src/app/api/another-route/route.ts
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { cookies } from 'next/headers'; // Problematic direct usage
+
+export async function GET(request: Request) {
+  const cookieStore = cookies(); // Direct usage that can lead to errors if not awaited or handled like the wrapper
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: { // Re-defining cookie handlers is error-prone and bypasses the centralized setup
+        get: (name: string) => cookieStore.get(name)?.value, 
+        set: (name: string, value: string, options: CookieOptions) => cookieStore.set({ name, value, ...options }),
+        remove: (name: string, options: CookieOptions) => cookieStore.set({ name, value: '', ...options }),
+      }
+    }
+  );
+  // This bypasses the carefully constructed async cookie handling in @/lib/supabase/server.ts
+}
+
+// INCORRECT: Using deprecated auth-helpers package
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
+export function AuthForm() {
+  const supabase = createClientComponentClient(); // Deprecated
+  // ...
+}
+
+// INCORRECT: Resetting password without relying on session from exchangeCodeForSession
+// File: src/services/authService.ts (Old / Problematic way)
+export async function resetPassword(token: string, newPassword: string) {
+  // This implies the token is passed around manually instead of relying on an established session.
+  // It can lead to issues if the session/cookie state isn't perfectly managed.
+  // The correct way is to establish session in callback, then call updateUser on a server client
+  // that picks up this session via cookies.
+}
+</example>
+
