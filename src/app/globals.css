@@ -58,7 +58,7 @@
   --card-foreground: oklch(0.22 0.03 258); /* slate-900 */
   --popover: oklch(1 0 0); /* white */
   --popover-foreground: oklch(0.22 0.03 258); /* slate-900 */
-  --primary: oklch(0.69 0.19 41); /* orange-500 */
+  --primary: #F47C20; /* Brand orange */
   --primary-foreground: oklch(1 0 0); /* white */
   --secondary: oklch(0.56 0.14 230); /* sky-600 */
   --secondary-foreground: oklch(1 0 0); /* white */
@@ -69,7 +69,7 @@
   --destructive: oklch(0.577 0.245 27.325); /* Keep original destructive */
   --border: oklch(0.86 0.02 250); /* slate-300 */
   --input: oklch(0.86 0.02 250); /* slate-300 */
-  --ring: oklch(0.69 0.19 41); /* orange-500 */
+  --ring: #F47C20; /* Brand orange */
 
   /* Chart colors (can be kept or adjusted based on new theme) */
   --chart-1: oklch(0.646 0.222 41.116);
@@ -81,12 +81,12 @@
   /* Sidebar (example adjustment - might need further refinement) */
   --sidebar: oklch(1 0 0); /* white */
   --sidebar-foreground: oklch(0.22 0.03 258); /* slate-900 */
-  --sidebar-primary: oklch(0.69 0.19 41); /* orange-500 */
+  --sidebar-primary: #F47C20; /* Brand orange */
   --sidebar-primary-foreground: oklch(1 0 0); /* white */
   --sidebar-accent: oklch(0.96 0.01 250); /* slate-100 */
-  --sidebar-accent-foreground: oklch(0.69 0.19 41); /* orange-500 */
+  --sidebar-accent-foreground: #F47C20; /* Brand orange */
   --sidebar-border: oklch(0.86 0.02 250); /* slate-300 */
-  --sidebar-ring: oklch(0.69 0.19 41); /* orange-500 */
+  --sidebar-ring: #F47C20; /* Brand orange */
 }
 
 .dark { /* Dark Theme - Based on Slate */
@@ -96,7 +96,7 @@
   --card-foreground: oklch(0.93 0.01 250); /* slate-200 */
   --popover: oklch(0.22 0.03 258); /* slate-900 */
   --popover-foreground: oklch(0.93 0.01 250); /* slate-200 */
-  --primary: oklch(0.69 0.19 41); /* orange-500 */
+  --primary: #F47C20; /* Brand orange */
   --primary-foreground: oklch(0.22 0.03 258); /* slate-900 (dark text on orange) */
   --secondary: oklch(0.56 0.14 230); /* sky-600 */
   --secondary-foreground: oklch(0.96 0.01 250); /* slate-100 */
@@ -107,7 +107,7 @@
   --destructive: oklch(0.704 0.191 22.216); /* Keep original dark destructive */
   --border: oklch(0.42 0.04 258); /* slate-700 */
   --input: oklch(0.42 0.04 258); /* slate-700 */
-  --ring: oklch(0.69 0.19 41); /* orange-500 */
+  --ring: #F47C20; /* Brand orange */
 
   /* Chart colors (can be kept or adjusted based on new theme) */
   --chart-1: oklch(0.488 0.243 264.376);
@@ -119,12 +119,12 @@
   /* Sidebar (example adjustment - might need further refinement) */
   --sidebar: oklch(0.22 0.03 258); /* slate-900 */
   --sidebar-foreground: oklch(0.93 0.01 250); /* slate-200 */
-  --sidebar-primary: oklch(0.69 0.19 41); /* orange-500 */
+  --sidebar-primary: #F47C20; /* Brand orange */
   --sidebar-primary-foreground: oklch(0.22 0.03 258); /* slate-900 */
   --sidebar-accent: oklch(0.42 0.04 258); /* slate-700 */
   --sidebar-accent-foreground: oklch(0.93 0.01 250); /* slate-200 */
   --sidebar-border: oklch(0.42 0.04 258); /* slate-700 */
-  --sidebar-ring: oklch(0.69 0.19 41); /* orange-500 */
+  --sidebar-ring: #F47C20; /* Brand orange */
 }
 
 @layer base {

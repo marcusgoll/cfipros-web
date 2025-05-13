@@ -19,13 +19,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <PostHogProvider>
-        <AnalyticsProvider>
-          <ThemeProvider>
-            <body className={inter.className}>{children}</body>
-          </ThemeProvider>
-        </AnalyticsProvider>
-      </PostHogProvider>
+      <body className={inter.className}>
+        <PostHogProvider>
+          <AnalyticsProvider>
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </AnalyticsProvider>
+        </PostHogProvider>
+      </body>
     </html>
   );
 }
