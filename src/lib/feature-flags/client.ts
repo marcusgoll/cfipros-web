@@ -1,6 +1,6 @@
 /**
  * Feature Flags - Client Side Hooks
- * 
+ *
  * This module provides React hooks to use feature flags in client components.
  */
 
@@ -11,10 +11,10 @@ import { type FeatureFlag, isFeatureEnabled } from './index';
 
 /**
  * React hook to check if a feature is enabled
- * @param flag The feature flag to check
+ * @param flag The feature flag to check. Can be undefined.
  * @returns boolean indicating if the feature is enabled
  */
-export function useFeatureFlag(flag: FeatureFlag): boolean {
+export function useFeatureFlag(flag: FeatureFlag | undefined): boolean {
   const [isEnabled, setIsEnabled] = useState<boolean>(() => isFeatureEnabled(flag));
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function useFeatureFlag(flag: FeatureFlag): boolean {
 
     // Listen for feature flag changes (custom event)
     window.addEventListener('feature-flag-changed', handleFlagChange);
-    
+
     return () => {
       window.removeEventListener('feature-flag-changed', handleFlagChange);
     };
@@ -44,16 +44,18 @@ export function useFeatureFlag(flag: FeatureFlag): boolean {
  */
 export function setFeatureFlag(flag: FeatureFlag, value: boolean): void {
   if (typeof window === 'undefined') return;
-  
+
   // Initialize window.__ENV__ if it doesn't exist
   window.__ENV__ = window.__ENV__ || {};
   window.__ENV__.FEATURE_FLAGS = window.__ENV__.FEATURE_FLAGS || {};
-  
+
   // Update the flag
   window.__ENV__.FEATURE_FLAGS[flag] = value;
-  
+
   // Dispatch event to notify listeners
-  window.dispatchEvent(new CustomEvent('feature-flag-changed', {
-    detail: { flag, value }
-  }));
-} 
+  window.dispatchEvent(
+    new CustomEvent('feature-flag-changed', {
+      detail: { flag, value },
+    })
+  );
+}

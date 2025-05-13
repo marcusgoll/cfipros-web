@@ -4,14 +4,14 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { usePostHog } from 'posthog-js/react';
 import { useFeatureFlag } from '@/lib/feature-flags/client';
-import { type FeatureFlag } from '@/lib/feature-flags';
+import type { FeatureFlag } from '@/lib/feature-flags';
 import { cn } from '@/lib/utils';
 
 interface NavLinkProps {
   href: string;
   title: string;
   trackingId?: string;
-  featureFlag?: string;
+  featureFlag?: FeatureFlag;
   requireAuth?: boolean;
   excludeWhenAuth?: boolean;
   isAuthenticated?: boolean;
@@ -38,10 +38,8 @@ export function NavLink({
   const posthog = usePostHog();
   const isActive = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
-  // Call useFeatureFlag unconditionally at the top level
-  const isFlagEnabled = useFeatureFlag(featureFlag as FeatureFlag);
-  // Check feature flag if provided
-  const featureFlagEnabled = featureFlag ? isFlagEnabled : true;
+  // useFeatureFlag now handles undefined flag prop correctly (returns true if flag is undefined)
+  const featureActuallyEnabled = useFeatureFlag(featureFlag);
 
   // If this link requires auth and user is not authenticated, don't show it
   if (requireAuth && !isAuthenticated) {
@@ -53,8 +51,9 @@ export function NavLink({
     return null;
   }
 
-  // If this link has a feature flag and it's not enabled, don't show it
-  if (featureFlag && !featureFlagEnabled) {
+  // If featureFlag was provided AND it resolved to false, then don't show it.
+  // If featureFlag was undefined, hook returns true, so this condition won't hide it.
+  if (featureFlag && !featureActuallyEnabled) {
     return null;
   }
 

@@ -10,6 +10,7 @@ jest.mock('@/lib/feature-flags/client', () => ({
 import { useFeatureFlag } from '@/lib/feature-flags/client'; // Import after mock. Adjusted to useFeatureFlag (singular)
 import { useRouter, usePathname } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'; // Import this to mock it
+import type { FeatureFlag } from '@/lib/feature-flags'; // Import FeatureFlag type
 
 // Mock the hooks and libraries
 jest.mock('next/navigation', () => ({
@@ -55,16 +56,13 @@ describe('TopBar Component', () => {
     mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
 
     // Reset feature flags mock for each test
-    (useFeatureFlag as jest.Mock).mockImplementation((flag: string) => {
-      if (flag === 'enhanced-nav-enabled') return true;
-      if (flag === 'company-link') return true;
-      // Add other flags used by NavLink if necessary for specific tests
-      if (flag === 'why-cfipros-link') return true;
-      if (flag === 'products-link') return true;
-      if (flag === 'pricing-link') return true;
-      if (flag === 'docs-link') return true;
-      if (flag === 'community-link') return true;
-      return false; // Default other flags to false
+    (useFeatureFlag as jest.Mock).mockImplementation((flag: FeatureFlag | undefined) => {
+      if (flag === undefined) return true; // For NavLinks without a featureFlag prop
+      if (flag === 'ENHANCED_NAV_ENABLED') return true;
+      if (flag === 'COMPANY_LINK_ENABLED') return true;
+      // For other specific flags, if any are added back to NavLink props, list them here.
+      // Otherwise, any other string will default to false, effectively hiding NavLinks that might have old/invalid string flags.
+      return false;
     });
 
     (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });

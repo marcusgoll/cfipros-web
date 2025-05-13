@@ -1,6 +1,6 @@
 /**
  * Feature Flags System
- * 
+ *
  * This module defines all feature flags used in the application and provides
  * helper functions to check flag status in both server and client components.
  */
@@ -8,7 +8,9 @@
 // Define all feature flags with their default values
 export const FEATURE_FLAGS = {
   UNIFIED_SIGNUP_FLOW: false, // Controls the unified vs. role-specific signup flow
-  ANALYTICS_ENABLED: false,   // Controls analytics tracking
+  ANALYTICS_ENABLED: false, // Controls analytics tracking
+  ENHANCED_NAV_ENABLED: true, // Controls visibility of the main site navigation (default to true for now)
+  COMPANY_LINK_ENABLED: true, // Controls visibility of the company link (default to true for now)
 } as const;
 
 // Type for all available feature flags
@@ -17,15 +19,18 @@ export type FeatureFlag = keyof typeof FEATURE_FLAGS;
 /**
  * Get the status of a feature flag
  * This function checks environment variables first, then falls back to defaults
- * @param flag The feature flag to check
+ * @param flag The feature flag to check. If undefined, returns true (not gated).
  * @returns boolean indicating if the feature is enabled
  */
-export function isFeatureEnabled(flag: FeatureFlag): boolean {
+export function isFeatureEnabled(flag: FeatureFlag | undefined): boolean {
+  if (flag === undefined) {
+    return true; // If no flag is specified, consider it enabled (not gated)
+  }
+
   // First check if there's a runtime env var (for client components)
-  const envValue = typeof window !== 'undefined' 
-    ? window.__ENV__?.FEATURE_FLAGS?.[flag]
-    : undefined;
-    
+  const envValue =
+    typeof window !== 'undefined' ? window.__ENV__?.FEATURE_FLAGS?.[flag] : undefined;
+
   if (envValue !== undefined) {
     return envValue === true || envValue === 'true';
   }
@@ -33,7 +38,7 @@ export function isFeatureEnabled(flag: FeatureFlag): boolean {
   // Then check Next.js env vars
   const nextEnvKey = `NEXT_PUBLIC_FEATURE_${flag}`;
   const nextEnvValue = process.env[nextEnvKey];
-  
+
   if (nextEnvValue !== undefined) {
     return nextEnvValue === 'true';
   }
@@ -51,4 +56,4 @@ declare global {
       };
     };
   }
-} 
+}

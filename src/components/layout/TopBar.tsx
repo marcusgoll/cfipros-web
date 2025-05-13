@@ -17,7 +17,7 @@ const NAV_LINKS = [
   { title: 'Pricing', href: '/pricing' },
   { title: 'Docs', href: '/docs' },
   { title: 'Community', href: '/community' },
-  { title: 'Company', href: '/company', featureFlag: 'nav-company-link-enabled' },
+  { title: 'Company', href: '/company', featureFlag: 'COMPANY_LINK_ENABLED' },
 ];
 
 export function TopBar() {
@@ -26,8 +26,8 @@ export function TopBar() {
   const posthog = usePostHog();
 
   // Check for enhanced navigation feature flag
-  const enhancedNavEnabled = useFeatureFlag('enhanced-nav-enabled');
-  const companyLinkEnabled = useFeatureFlag('company-link');
+  const enhancedNavEnabled = useFeatureFlag('ENHANCED_NAV_ENABLED');
+  const companyLinkEnabled = useFeatureFlag('COMPANY_LINK_ENABLED');
 
   useEffect(() => {
     const checkAuthState = async () => {
@@ -68,14 +68,12 @@ export function TopBar() {
         {/* Desktop Navigation */}
         {enhancedNavEnabled && (
           <nav className="hidden md:flex gap-6 items-center">
-            <NavLink href="/why" title="Why CFIPros?" featureFlag="why-cfipros-link" />
-            <NavLink href="/products" title="Products" featureFlag="products-link" />
-            <NavLink href="/pricing" title="Pricing" featureFlag="pricing-link" />
-            <NavLink href="/docs" title="Docs" featureFlag="docs-link" />
-            <NavLink href="/community" title="Community" featureFlag="community-link" />
-            {companyLinkEnabled && (
-              <NavLink href="/company" title="Company" featureFlag="company-link" />
-            )}
+            <NavLink href="/why" title="Why CFIPros?" />
+            <NavLink href="/products" title="Products" />
+            <NavLink href="/pricing" title="Pricing" />
+            <NavLink href="/docs" title="Docs" />
+            <NavLink href="/community" title="Community" />
+            {companyLinkEnabled && <NavLink href="/company" title="Company" />}
           </nav>
         )}
 
