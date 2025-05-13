@@ -24,7 +24,6 @@ describe('Resend Client', () => {
     mockSend.mockResolvedValue({ id: 'mock-email-id', message: 'Email sent successfully' });
 
     // Update the mock implementation
-    // @ts-expect-error - we know this isn't completely type-safe but it's a test mock
     resend.emails.send = mockSend;
 
     // Setup test environment variables
@@ -101,7 +100,9 @@ describe('Resend Client', () => {
 
     expect(result.data).toBeNull();
     expect(result.error).toBeInstanceOf(Error);
-    expect(result.error.message).toBe('No sender email provided and RESEND_FROM_EMAIL not set');
+    expect((result.error as Error).message).toBe(
+      'No sender email provided and RESEND_FROM_EMAIL not set'
+    );
 
     consoleSpy.mockRestore();
   });

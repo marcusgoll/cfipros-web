@@ -9,8 +9,10 @@ if (!resendApiKey) {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('RESEND_API_KEY environment variable is not set');
   }
-  
-  console.warn('RESEND_API_KEY environment variable is not set. Email functionality will not work.');
+
+  console.warn(
+    'RESEND_API_KEY environment variable is not set. Email functionality will not work.'
+  );
 }
 
 // Initialize Resend client
@@ -34,25 +36,25 @@ export interface EmailData {
 export async function sendEmail(data: EmailData) {
   try {
     const { to, subject, htmlContent, textContent, from, replyTo } = data;
-    
+
     const fromEmail = from || process.env.RESEND_FROM_EMAIL;
-    
+
     if (!fromEmail) {
       throw new Error('No sender email provided and RESEND_FROM_EMAIL not set');
     }
-    
+
     const response = await resend.emails.send({
       from: fromEmail,
       to,
       subject,
       html: htmlContent,
       text: textContent,
-      reply_to: replyTo,
+      replyTo: replyTo,
     });
-    
+
     return { data: response, error: null };
   } catch (error) {
     console.error('Error sending email via Resend:', error);
     return { data: null, error };
   }
-} 
+}
