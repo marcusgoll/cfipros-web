@@ -19,7 +19,7 @@
 -- scripts/migrations/init-migration.sql. Future migrations would only include changes
 -- to this initial schema.
 
--- Actual migration SQL statements would go here... 
+-- Actual migration SQL statements would go here...
 
 -- Initial database schema migration script
 -- This script captures the existing schema design for versioning purposes

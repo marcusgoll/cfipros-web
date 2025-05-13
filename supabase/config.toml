@@ -1,10 +1,7 @@
-# This is a sample config.toml for use with Supabase CLI
-# Actual values would be populated during project setup
+# This is a config.toml for use with Supabase CLI
 
 # Project configuration
-[project]
-# The ID of your Supabase project (found in the Supabase dashboard URL)
-id = "your-project-ref" 
+project_id = "yimvluqgmullzscldfyw"
 
 # Local development configuration
 [local]
