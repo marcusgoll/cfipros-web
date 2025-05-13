@@ -92,12 +92,12 @@ describe('ProfilePage', () => {
 
   it('creates a profile if none exists', async () => {
     // Mock Supabase responses for authenticated user with no profile
+    // @ts-expect-error - Intentionally using simplified User mock for testing
     const mockUser = {
       id: 'user-123',
       email: 'test@example.com',
       user_metadata: { full_name: 'Test User', role: 'STUDENT' },
-      // @ts-expect-error - Intentionally adding simplified user object for testing
-    } as User;
+    } as unknown as User;
 
     const mockProfile = { id: 'user-123', full_name: 'Test User' };
 

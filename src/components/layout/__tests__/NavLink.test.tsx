@@ -47,6 +47,7 @@ jest.mock('next/link', () => {
 
 // Set up the test environment for React 18
 // This helps prevent "Objects are not valid as a React child" errors in tests
+// @ts-expect-error - IS_REACT_ACT_ENVIRONMENT is added at runtime
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe('NavLink Component', () => {
@@ -113,6 +114,7 @@ describe('NavLink Component', () => {
     (useFeatureFlag as jest.Mock).mockReturnValue(false);
 
     await act(async () => {
+      // @ts-expect-error - Using a test value that doesn't match the FeatureFlag type for testing
       render(<NavLink href="/test" title="Test Link" featureFlag="test-flag" />);
     });
 

@@ -84,7 +84,7 @@ describe('ProfileForm', () => {
   it('shows error message when update fails', async () => {
     // Mock failed profile update
     const errorMessage = 'Profile update failed';
-    // @ts-expect-error - This is an intentional mock for testing error messages
+    // @ts-expect-error - Intentionally mocking with error for testing
     (updateProfile as jest.MockedFunction<typeof updateProfile>).mockResolvedValue({
       error: { message: errorMessage },
     });

@@ -36,6 +36,7 @@ jest.mock('next/link', () => {
 });
 
 // Set up the test environment for React 18
+// @ts-expect-error - IS_REACT_ACT_ENVIRONMENT is added at runtime
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe('TopBar Component', () => {
