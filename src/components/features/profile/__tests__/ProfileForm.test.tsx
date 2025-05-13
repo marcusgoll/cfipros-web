@@ -2,9 +2,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ProfileForm from '../ProfileForm';
 import { updateProfile } from '@/lib/supabase/auth';
 import { trackEvent } from '@/lib/analytics';
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 // @ts-expect-error - This module path is missing but used in tests
-import { Profile } from '@/lib/types/database';
+import type { Profile } from '@/lib/types/database';
 
 // Mock the modules
 jest.mock('@/lib/supabase/auth', () => ({
@@ -85,7 +85,6 @@ describe('ProfileForm', () => {
     // Mock failed profile update
     const errorMessage = 'Profile update failed';
     (updateProfile as jest.MockedFunction<typeof updateProfile>).mockResolvedValue({
-      data: null,
       error: { message: errorMessage },
     });
 
