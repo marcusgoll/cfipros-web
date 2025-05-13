@@ -268,7 +268,7 @@ export function ProductMatrix() {
                   <h4 className="text-lg font-bold mb-2">Upload Failed</h4>
                   <p className="text-sm text-muted-foreground mb-4">{filename}</p>
                   <p className="text-sm text-muted-foreground text-center mb-4">
-                    We couldn't process your file. Please ensure it's a valid FAA Knowledge Test PDF.
+                    We couldn&apos;t process your file. Please ensure it&apos;s a valid FAA Knowledge Test PDF.
                   </p>
                   <Button 
                     variant="outline" 
