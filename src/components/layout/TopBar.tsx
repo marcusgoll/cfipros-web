@@ -9,9 +9,16 @@ import { usePostHog } from 'posthog-js/react';
 import { NavLink } from './NavLink';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useFeatureFlag } from '@/lib/feature-flags/client';
+import type { FeatureFlag } from '@/lib/feature-flags';
 
 // Navigation links with optional feature flags
-const NAV_LINKS = [
+interface NavLinkItem {
+  title: string;
+  href: string;
+  featureFlag?: FeatureFlag;
+}
+
+const NAV_LINKS: NavLinkItem[] = [
   { title: 'Why CFIPros?', href: '/why' },
   { title: 'Products', href: '/products' },
   { title: 'Pricing', href: '/pricing' },

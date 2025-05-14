@@ -54,4 +54,4 @@ Object.defineProperty(window, 'location', {
 // Global afterEach
 afterEach(() => {
   jest.clearAllMocks();
-}); 
+});

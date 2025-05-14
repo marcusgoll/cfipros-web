@@ -10,37 +10,38 @@ jobs:
   code-quality:
     name: Check Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-      
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Check TypeScript types
-      run: npm run typecheck || (echo "TypeScript type checking failed" && exit 1)
-      
-    - name: Lint check
-      run: npm run lint || (echo "ESLint check failed" && exit 1)
-      
-    - name: Run tests with coverage
-      run: npm run test:coverage || (echo "Tests failed" && exit 1)
-      
-    - name: Check code formatting
-      run: npm run format:check || (echo "Prettier formatting check failed" && exit 1)
-      
-    - name: Report job status
-      if: always()
-      run: |
-        echo "Job Status: ${{ job.status }}"
-        if [[ "${{ job.status }}" == "success" ]]; then
-          echo "✅ All code quality checks passed!"
-        else
-          echo "❌ Some code quality checks failed. Please review the logs for details." 
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript types
+        run: npm run typecheck || (echo "TypeScript type checking failed" && exit 1)
+
+      - name: Lint check
+        run: npm run lint || (echo "ESLint check failed" && exit 1)
+
+      - name: Run tests with coverage
+        run: npm run test:coverage || (echo "Tests failed" && exit 1)
+
+      - name: Check code formatting
+        run: npm run format:check || (echo "Prettier formatting check failed" && exit 1)
+
+      - name: Report job status
+        if: always()
+        run: |
+          echo "Job Status: ${{ job.status }}"
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ All code quality checks passed!"
+          else
+            echo "❌ Some code quality checks failed. Please review the logs for details."
+          fi

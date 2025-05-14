@@ -56,6 +56,7 @@ export function UnifiedSignUpForm() {
     setError(null);
 
     try {
+      // @ts-expect-error - We're intentionally omitting confirmPassword as it's not needed for the API call
       const result = await signUpWithEmail({
         email: data.email,
         password: data.password,

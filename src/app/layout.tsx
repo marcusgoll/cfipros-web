@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { Inter } from 'next/font/google';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,15 +20,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <PostHogProvider>
-          <AnalyticsProvider>
-            <ThemeProvider>
-              <div className="min-h-screen flex flex-col">
-                <TopBar />
-                <main className="flex-grow">{children}</main>
-                <Footer />
-              </div>
-            </ThemeProvider>
-          </AnalyticsProvider>
+          <Suspense fallback={null}>
+            <AnalyticsProvider>
+              <ThemeProvider>
+                <div className="min-h-screen flex flex-col">
+                  <TopBar />
+                  <main className="flex-grow">{children}</main>
+                  <Footer />
+                </div>
+              </ThemeProvider>
+            </AnalyticsProvider>
+          </Suspense>
         </PostHogProvider>
       </body>
     </html>

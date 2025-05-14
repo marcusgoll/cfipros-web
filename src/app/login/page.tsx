@@ -12,7 +12,7 @@ export default async function LoginPage() {
   // Check if user is already logged in
   const supabase = createSupabaseServerClient();
   const { data } = await supabase.auth.getSession();
-  
+
   // If user is already authenticated, redirect to dashboard
   if (data?.session) {
     redirect('/dashboard');

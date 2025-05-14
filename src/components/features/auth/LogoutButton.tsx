@@ -34,4 +34,4 @@ export default function LogoutButton() {
       {isLoading ? 'Signing out...' : 'Sign Out'}
     </button>
   );
-} 
+}

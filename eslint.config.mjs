@@ -21,12 +21,8 @@ const eslintConfig = [
     ],
   },
   ...compat.config({
-    extends: [
-      'next/core-web-vitals',
-      'next/typescript',
-      'eslint-config-prettier'
-    ]
-  })
+    extends: ['next/core-web-vitals', 'next/typescript', 'eslint-config-prettier'],
+  }),
 ];
 
 export default eslintConfig;

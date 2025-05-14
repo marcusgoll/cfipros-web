@@ -324,8 +324,8 @@ COMMENT ON COLUMN public.profiles.notification_preferences IS
 
 ## Change Log
 
-| Change        | Date       | Version | Description                  | Author         |
-| :------------ | :--------- | :------ | :--------------------------- | :------------- |
+| Change        | Date       | Version | Description                       | Author       |
+| :------------ | :--------- | :------ | :-------------------------------- | :----------- |
 | Initial draft | 2025-05-10 | 0.1     | First draft of migration strategy | Developer AI |
 
---- 
+---

@@ -7,9 +7,22 @@ import { NavLink } from './NavLink';
 import { useFeatureFlag } from '@/hooks/useFeatureFlag';
 import { useState, useEffect } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import type { FeatureFlag } from '@/lib/feature-flags';
 
 // Define the footer links for each category
-const footerLinks = [
+interface FooterLink {
+  name: string;
+  href: string;
+  featureFlag?: FeatureFlag;
+}
+
+interface FooterCategory {
+  id: string;
+  title: string;
+  links: FooterLink[];
+}
+
+const footerLinks: FooterCategory[] = [
   {
     id: 'product',
     title: 'Product',
@@ -37,7 +50,7 @@ const footerLinks = [
       { name: 'About', href: '/about' },
       { name: 'FAQ', href: '/faq' },
       { name: 'Contact', href: '/contact' },
-      { name: 'Company', href: '/company', featureFlag: 'nav-company-link-enabled' },
+      { name: 'Company', href: '/company', featureFlag: 'COMPANY_LINK_ENABLED' },
     ],
   },
   {

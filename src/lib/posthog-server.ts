@@ -24,7 +24,7 @@ export async function getFeatureFlag(flagKey: string, defaultValue = false): Pro
 
     // Get distinct ID from cookie if available
     const cookieStore = cookies();
-    const distinctId = cookieStore.get('ph_distinct_id')?.value;
+    const distinctId = (await cookieStore).get('ph_distinct_id')?.value;
 
     if (!distinctId) {
       return defaultValue;

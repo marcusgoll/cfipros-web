@@ -2,20 +2,28 @@
 
 import { createSupabaseServerClient } from './server';
 import type { SignUpFormData } from '@/components/features/auth/SignUpForm';
-import type { SchoolSignUpFormData } from '@/components/features/auth/SchoolSignUpForm';
+// Define the type locally instead of importing from a non-existent file
+interface SchoolSignUpFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  schoolName: string;
+  part61Or141Type: string;
+}
 import type { LoginFormData } from '@/components/features/auth/LoginForm';
 
 /**
  * Auth functions for Supabase authentication
- * 
+ *
  * NOTE ON EMAIL HANDLING:
  * All authentication-related emails (signup, verification, password reset)
  * are handled directly by Supabase Auth and its email templates.
- * 
+ *
  * To customize these emails, go to the Supabase Dashboard:
  * 1. Authentication > Email Templates
  * 2. Customize each template (Confirmation, Invite, Magic Link, Recovery)
- * 
+ *
  * For non-auth related emails, use the emailService.ts which leverages Resend.
  */
 
@@ -36,10 +44,10 @@ export async function signUpWithEmail(data: SignUpFormData) {
     return {
       user: null,
       session: null,
-      error: { 
-        name: 'UserExistsError', 
-        message: 'User already registered'
-      }
+      error: {
+        name: 'UserExistsError',
+        message: 'User already registered',
+      },
     };
   }
 
@@ -62,27 +70,29 @@ export async function signUpWithEmail(data: SignUpFormData) {
   if (authData.user) {
     console.log('[Auth Action - Student] User created/found. User ID:', authData.user.id);
     console.log('[Auth Action - Student] Email confirmed at:', authData.user.email_confirmed_at);
-    
+
     // If email is already confirmed, this is an existing user
     if (authData.user.email_confirmed_at) {
       return {
         user: null,
         session: null,
-        error: { 
-          name: 'UserExistsError', 
-          message: 'User already registered'
-        }
+        error: {
+          name: 'UserExistsError',
+          message: 'User already registered',
+        },
       };
     }
   } else {
-    console.error('[Auth Action - Student] Sign up call successful but no user data returned in authData.user.');
+    console.error(
+      '[Auth Action - Student] Sign up call successful but no user data returned in authData.user.'
+    );
     return {
       user: null,
       session: null,
       error: { name: 'AuthError', message: 'Sign up successful but no user object in response.' },
     };
   }
-  
+
   return { user: authData.user, session: authData.session, error: null };
 }
 
@@ -104,13 +114,13 @@ export async function signUpWithEmailCFI(data: SignUpFormData) {
     return {
       user: null,
       session: null,
-      error: { 
-        name: 'UserExistsError', 
-        message: 'User already registered'
-      }
+      error: {
+        name: 'UserExistsError',
+        message: 'User already registered',
+      },
     };
   }
-  
+
   // Proceed with normal signup if user doesn't exist
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -130,24 +140,29 @@ export async function signUpWithEmailCFI(data: SignUpFormData) {
   if (authData.user) {
     console.log('[Auth Action - CFI] User created/found. User ID:', authData.user.id);
     console.log('[Auth Action - CFI] Email confirmed at:', authData.user.email_confirmed_at);
-    
+
     // If email is already confirmed, this is an existing user
     if (authData.user.email_confirmed_at) {
       return {
         user: null,
         session: null,
-        error: { 
-          name: 'UserExistsError', 
-          message: 'User already registered'
-        }
+        error: {
+          name: 'UserExistsError',
+          message: 'User already registered',
+        },
       };
     }
   } else {
-    console.error('[Auth Action - CFI] Sign up call successful but no user data returned in authData.user.');
+    console.error(
+      '[Auth Action - CFI] Sign up call successful but no user data returned in authData.user.'
+    );
     return {
       user: null,
       session: null,
-      error: { name: 'AuthError', message: 'CFI Sign up successful but no user object in response.' },
+      error: {
+        name: 'AuthError',
+        message: 'CFI Sign up successful but no user object in response.',
+      },
     };
   }
 
@@ -172,13 +187,13 @@ export async function signUpWithEmailSchool(data: SchoolSignUpFormData) {
     return {
       user: null,
       session: null,
-      error: { 
-        name: 'UserExistsError', 
-        message: 'User already registered'
-      }
+      error: {
+        name: 'UserExistsError',
+        message: 'User already registered',
+      },
     };
   }
-  
+
   // Proceed with normal signup if user doesn't exist
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -188,8 +203,8 @@ export async function signUpWithEmailSchool(data: SchoolSignUpFormData) {
         full_name: fullName,
         role: 'SCHOOL_ADMIN',
         school_name: schoolName,
-        part_61_or_141_type: part61Or141Type
-      }
+        part_61_or_141_type: part61Or141Type,
+      },
     },
   });
 
@@ -198,35 +213,45 @@ export async function signUpWithEmailSchool(data: SchoolSignUpFormData) {
   console.log('Auth Error:', JSON.stringify(authError, null, 2));
 
   if (authError) {
-    console.error('[Auth Action - School Admin] Error signing up School Admin auth user:', authError.message);
+    console.error(
+      '[Auth Action - School Admin] Error signing up School Admin auth user:',
+      authError.message
+    );
     return { user: null, session: null, error: authError };
   }
 
   if (authData.user) {
     console.log('[Auth Action - School Admin] User created/found. User ID:', authData.user.id);
-    console.log('[Auth Action - School Admin] Email confirmed at:', authData.user.email_confirmed_at);
-    
+    console.log(
+      '[Auth Action - School Admin] Email confirmed at:',
+      authData.user.email_confirmed_at
+    );
+
     // If email is already confirmed, this is an existing user
     if (authData.user.email_confirmed_at) {
       return {
         user: null,
         session: null,
-        error: { 
-          name: 'UserExistsError', 
-          message: 'User already registered'
-        }
+        error: {
+          name: 'UserExistsError',
+          message: 'User already registered',
+        },
       };
     }
 
     // We don't create the school record here, we'll do that during profile setup
     // after the user has verified their email
-
   } else {
-    console.error('[Auth Action - School Admin] Sign up call successful but no user data returned in authData.user.');
+    console.error(
+      '[Auth Action - School Admin] Sign up call successful but no user data returned in authData.user.'
+    );
     return {
       user: null,
       session: null,
-      error: { name: 'AuthError', message: 'School Admin Sign up successful but no user object in response.' },
+      error: {
+        name: 'AuthError',
+        message: 'School Admin Sign up successful but no user object in response.',
+      },
     };
   }
 
@@ -275,12 +300,12 @@ export async function getUserRole(userId: string) {
     .select('role')
     .eq('id', userId)
     .maybeSingle();
-  
+
   if (error) {
     console.error('[Auth Action] Error fetching user role:', error.message);
     return { role: null, error };
   }
-  
+
   // If no profile is found
   if (!data) {
     console.log('[Auth Action] No profile found for user, assuming default role');
@@ -293,9 +318,12 @@ export async function getUserRole(userId: string) {
 // Determine redirect path based on user role
 export async function getRedirectPathByRole(userId: string) {
   const { role, error } = await getUserRole(userId);
-  
+
   if (error || !role) {
-    console.error('[Auth Action] Error determining redirect path:', error?.message || 'No role found');
+    console.error(
+      '[Auth Action] Error determining redirect path:',
+      error?.message || 'No role found'
+    );
     return '/profile-setup'; // Default to profile setup if role can't be determined
   }
 
@@ -312,13 +340,7 @@ export async function getRedirectPathByRole(userId: string) {
 }
 
 // Update user profile
-export async function updateProfile({
-  userId,
-  fullName,
-}: {
-  userId: string;
-  fullName: string;
-}) {
+export async function updateProfile({ userId, fullName }: { userId: string; fullName: string }) {
   console.log('[Auth Action] Updating profile for user:', userId);
   const supabase = createSupabaseServerClient();
 

@@ -55,27 +55,28 @@ export function SignUpForm() {
 
       if (result.error) {
         // Check for specific error indicating user already exists
-        if (result.error.message.toLowerCase().includes('user already registered') || 
-            result.error.message.toLowerCase().includes('email link signin rate exceeded') || // Another common one
-            result.error.message.toLowerCase().includes('user already exists')
+        if (
+          result.error.message.toLowerCase().includes('user already registered') ||
+          result.error.message.toLowerCase().includes('email link signin rate exceeded') || // Another common one
+          result.error.message.toLowerCase().includes('user already exists')
         ) {
           setFormMessage({
             type: 'error',
             message: (
               <>
-                This email is already registered. Please{" "}
+                This email is already registered. Please{' '}
                 <Link href="/login" className="underline font-semibold">
                   log in
-                </Link>
-                {" "}or use a different email.
+                </Link>{' '}
+                or use a different email.
               </>
             ),
           });
         } else if (result.error.message.toLowerCase().includes('email rate limit exceeded')) {
-             setFormMessage({
-                type: 'error',
-                message: 'Too many attempts. Please try again later.'
-            });
+          setFormMessage({
+            type: 'error',
+            message: 'Too many attempts. Please try again later.',
+          });
         } else {
           setFormMessage({ type: 'error', message: result.error.message });
         }

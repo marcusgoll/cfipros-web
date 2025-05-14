@@ -1,8 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
-
 import { storybookTest } from '@storybook/experimental-addon-test/vitest-plugin';
 
 const dirname =
@@ -10,7 +9,18 @@ const dirname =
 
 // More info at: https://storybook.js.org/docs/writing-tests/test-addon
 export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(dirname, './src'),
+    },
+  },
   test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./vitest.setup.ts'],
+    include: ['**/__tests__/**/*.test.{ts,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
     workspace: [
       {
         extends: true,

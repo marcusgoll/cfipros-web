@@ -131,4 +131,4 @@ export default function ProfileForm({ user, profile }: ProfileFormProps) {
       </div>
     </div>
   );
-} 
+}

@@ -27,27 +27,33 @@
 **Guidance:** Use the following details for implementation. Refer to the linked `docs/` files for broader context if needed. **All implementation details must align with `docs/definition-of-done.md` criteria.**
 
 - **Relevant Files:**
+
   - Files to Create: {e.g., `src/services/s3-service.ts`, `test/unit/services/s3-service.test.ts`}
   - Files to Modify: {e.g., `lib/hacker-news-briefing-stack.ts`, `src/common/types.ts`}
   - _(Hint: See `docs/project-structure.md` for overall layout)_
 
 - **Key Technologies:**
+
   - {e.g., TypeScript, Node.js 22.x, AWS CDK (`aws-s3` construct), AWS SDK v3 (`@aws-sdk/client-s3`), Jest}
   - {If a UI story, mention specific frontend libraries/framework features (e.g., React Hooks, Vuex store, CSS Modules)}
   - _(Hint: See `docs/tech-stack.md` for full list)_
 
 - **API Interactions / SDK Usage:**
+
   - {e.g., "Use `@aws-sdk/client-s3`: `S3Client`, `GetObjectCommand`, `PutObjectCommand`.", "Handle `NoSuchKey` error specifically for `GetObjectCommand`."}
   - _(Hint: See `docs/api-reference.md` for details on external APIs and SDKs)_
 
 - **UI/UX Notes:** (ONLY IF THIS IS A UI Focused Epic or Story)
+
   - {Ensure alignment with `docs/ui-ux-spec.md` and relevant DoD quality standards for UI.}
 
 - **Data Structures:**
+
   - {e.g., "Define/Use `AppState` interface in `src/common/types.ts`: `{ processedStoryIds: string[] }`.", "Handle JSON parsing/stringifying for state."}
   - _(Hint: See `docs/data-models.md` for key project data structures)_
 
 - **Environment Variables:**
+
   - {e.g., `S3_BUCKET_NAME` (Read via `config.ts` or passed to CDK)}
   - _(Hint: See `docs/environment-vars.md` for all variables)_
 

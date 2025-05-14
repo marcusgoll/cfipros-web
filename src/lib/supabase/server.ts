@@ -36,7 +36,7 @@ export function createSupabaseServerClient() {
         try {
           // Ensure we are actually trying to remove by setting value to empty and maxAge to 0 or similar
           // The original @supabase/ssr examples sometimes use set with empty value for removal.
-          cookieStore.set({ name, value: '', ...options, maxAge: 0 }); 
+          cookieStore.set({ name, value: '', ...options, maxAge: 0 });
         } catch (error) {
           console.warn(`Supabase server client: Failed to remove cookie ${name}`, error);
         }

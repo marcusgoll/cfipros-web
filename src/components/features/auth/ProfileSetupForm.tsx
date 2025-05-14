@@ -99,11 +99,16 @@ export function ProfileSetupForm() {
           : studentSchema
     ),
     // Initialize all possible form fields with defaults
-    defaultValues: selectedRole === 'cfi'
-      ? { fullName: '', certificateNumber: '' } as CFIFormValues
-      : selectedRole === 'school_admin'
-        ? { fullName: '', schoolName: '', schoolType: 'part61_flight_school' } as SchoolAdminFormValues
-        : { fullName: '' } as StudentFormValues,
+    defaultValues:
+      selectedRole === 'cfi'
+        ? ({ fullName: '', certificateNumber: '' } as CFIFormValues)
+        : selectedRole === 'school_admin'
+          ? ({
+              fullName: '',
+              schoolName: '',
+              schoolType: 'part61_flight_school',
+            } as SchoolAdminFormValues)
+          : ({ fullName: '' } as StudentFormValues),
   });
 
   // Mark form as initialized when selectedRole is set
@@ -112,10 +117,14 @@ export function ProfileSetupForm() {
       // Reset the form with appropriate default values after the role is set
       form.reset(
         selectedRole === 'cfi'
-          ? { fullName: '', certificateNumber: '' } as CFIFormValues
+          ? ({ fullName: '', certificateNumber: '' } as CFIFormValues)
           : selectedRole === 'school_admin'
-            ? { fullName: '', schoolName: '', schoolType: 'part61_flight_school' } as SchoolAdminFormValues
-            : { fullName: '' } as StudentFormValues
+            ? ({
+                fullName: '',
+                schoolName: '',
+                schoolType: 'part61_flight_school',
+              } as SchoolAdminFormValues)
+            : ({ fullName: '' } as StudentFormValues)
       );
       setFormInitialized(true);
     }

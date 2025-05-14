@@ -1,10 +1,10 @@
 'use client';
 
-import { 
-  sendWelcomeEmail, 
-  sendNotificationEmail, 
-  sendInvitationEmail, 
-  sendTestEmail 
+import {
+  sendWelcomeEmail,
+  sendNotificationEmail,
+  sendInvitationEmail,
+  sendTestEmail,
 } from '../emailService';
 import { sendEmail } from '@/lib/resend';
 
@@ -12,8 +12,8 @@ import { sendEmail } from '@/lib/resend';
 jest.mock('@/lib/resend', () => ({
   sendEmail: jest.fn().mockImplementation(async () => ({
     data: { id: 'mock-email-id' },
-    error: null
-  }))
+    error: null,
+  })),
 }));
 
 describe('Email Service', () => {
@@ -27,16 +27,18 @@ describe('Email Service', () => {
       const emailData = {
         to: 'student@example.com',
         name: 'John Doe',
-        role: 'student' as const
+        role: 'student' as const,
       };
 
       await sendWelcomeEmail(emailData);
 
-      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
-        to: 'student@example.com',
-        subject: expect.stringContaining('Welcome to CFIPros'),
-        htmlContent: expect.stringContaining('Welcome to CFIPros, John Doe!')
-      }));
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'student@example.com',
+          subject: expect.stringContaining('Welcome to CFIPros'),
+          htmlContent: expect.stringContaining('Welcome to CFIPros, John Doe!'),
+        })
+      );
 
       // Check that the content contains student-specific text
       const callArg = (sendEmail as jest.Mock).mock.calls[0][0];
@@ -48,16 +50,18 @@ describe('Email Service', () => {
       const emailData = {
         to: 'cfi@example.com',
         name: 'Jane Instructor',
-        role: 'cfi' as const
+        role: 'cfi' as const,
       };
 
       await sendWelcomeEmail(emailData);
 
-      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
-        to: 'cfi@example.com',
-        subject: expect.stringContaining('Instructor Dashboard'),
-        htmlContent: expect.stringContaining('Welcome to CFIPros, Jane Instructor!')
-      }));
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'cfi@example.com',
+          subject: expect.stringContaining('Instructor Dashboard'),
+          htmlContent: expect.stringContaining('Welcome to CFIPros, Jane Instructor!'),
+        })
+      );
 
       // Check that the content contains CFI-specific text
       const callArg = (sendEmail as jest.Mock).mock.calls[0][0];
@@ -69,16 +73,18 @@ describe('Email Service', () => {
       const emailData = {
         to: 'school@example.com',
         name: 'Acme Flight Academy',
-        role: 'school' as const
+        role: 'school' as const,
       };
 
       await sendWelcomeEmail(emailData);
 
-      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
-        to: 'school@example.com',
-        subject: expect.stringContaining('Flight School Dashboard'),
-        htmlContent: expect.stringContaining('Welcome to CFIPros, Acme Flight Academy!')
-      }));
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'school@example.com',
+          subject: expect.stringContaining('Flight School Dashboard'),
+          htmlContent: expect.stringContaining('Welcome to CFIPros, Acme Flight Academy!'),
+        })
+      );
 
       // Check that the content contains school-specific text
       const callArg = (sendEmail as jest.Mock).mock.calls[0][0];
@@ -92,16 +98,18 @@ describe('Email Service', () => {
       const emailData = {
         to: 'user@example.com',
         subject: 'Test Notification',
-        message: 'This is a test notification message'
+        message: 'This is a test notification message',
       };
 
       await sendNotificationEmail(emailData);
 
-      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
-        to: 'user@example.com',
-        subject: 'Test Notification',
-        htmlContent: expect.stringContaining('This is a test notification message')
-      }));
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'user@example.com',
+          subject: 'Test Notification',
+          htmlContent: expect.stringContaining('This is a test notification message'),
+        })
+      );
 
       // Check that no action button is included
       const callArg = (sendEmail as jest.Mock).mock.calls[0][0];
@@ -114,7 +122,7 @@ describe('Email Service', () => {
         subject: 'Action Required',
         message: 'Please take action',
         actionUrl: 'https://example.com/action',
-        actionText: 'Click Here'
+        actionText: 'Click Here',
       };
 
       await sendNotificationEmail(emailData);
@@ -132,16 +140,18 @@ describe('Email Service', () => {
         inviterName: 'John Inviter',
         organizationName: 'Test Flight School',
         role: 'student' as const,
-        inviteUrl: 'https://example.com/invite/abc123'
+        inviteUrl: 'https://example.com/invite/abc123',
       };
 
       await sendInvitationEmail(emailData);
 
-      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
-        to: 'invitee@example.com',
-        subject: expect.stringContaining('You\'ve been invited to join Test Flight School'),
-        htmlContent: expect.stringContaining('John Inviter has invited you')
-      }));
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'invitee@example.com',
+          subject: expect.stringContaining("You've been invited to join Test Flight School"),
+          htmlContent: expect.stringContaining('John Inviter has invited you'),
+        })
+      );
 
       // Check role-specific content
       const callArg = (sendEmail as jest.Mock).mock.calls[0][0];
@@ -155,7 +165,7 @@ describe('Email Service', () => {
         inviterName: 'School Admin',
         organizationName: 'Test Flight School',
         role: 'cfi' as const,
-        inviteUrl: 'https://example.com/invite/cfi123'
+        inviteUrl: 'https://example.com/invite/cfi123',
       };
 
       await sendInvitationEmail(emailData);
@@ -169,14 +179,16 @@ describe('Email Service', () => {
     it('should send a test email with correct content', async () => {
       await sendTestEmail('test@example.com');
 
-      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
-        to: 'test@example.com',
-        subject: 'CFIPros Email Test',
-        htmlContent: expect.stringContaining('Email Configuration Test')
-      }));
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'test@example.com',
+          subject: 'CFIPros Email Test',
+          htmlContent: expect.stringContaining('Email Configuration Test'),
+        })
+      );
 
       const callArg = (sendEmail as jest.Mock).mock.calls[0][0];
       expect(callArg.htmlContent).toContain('your email configuration is working correctly');
     });
   });
-}); 
+});

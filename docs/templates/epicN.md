@@ -40,5 +40,5 @@
 
 ## Change Log
 
-| Change        | Date       | Version | Description                    | Author         |
-| ------------- | ---------- | ------- | ------------------------------ | -------------- |
+| Change | Date | Version | Description | Author |
+| ------ | ---- | ------- | ----------- | ------ |
