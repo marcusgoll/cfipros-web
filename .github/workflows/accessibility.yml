@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install OS dependencies for Chrome
+        run: sudo apt-get update && sudo apt-get install -y libxss1 libappindicator3-1 libindicator7
+
       - name: Build project
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
