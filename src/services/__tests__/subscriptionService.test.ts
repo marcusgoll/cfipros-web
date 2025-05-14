@@ -8,12 +8,12 @@ import {
   hasActiveSchoolSubscription,
   supabaseAdmin,
 } from '../subscriptionService';
-import type { SubscriptionStatus } from '@/lib/stripe/types';
+import type { DbSubscriptionStatus } from '@/lib/types/subscription';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-// Mock the Supabase client
-jest.mock('@/lib/supabase/server', () => ({
-  createServerSupabaseClient: jest.fn(),
-}));
+// jest.mock('@/lib/supabase/server', () => ({
+//   createServerSupabaseClient: jest.fn(),
+// }));
 
 // Mock the @supabase/supabase-js createClient
 jest.mock('@supabase/supabase-js', () => {
@@ -43,7 +43,7 @@ describe('Subscription Service', () => {
     school_id: null,
     stripe_customer_id: 'cus_123456',
     stripe_subscription_id: 'sub_123456',
-    status: 'active' as SubscriptionStatus,
+    status: 'ACTIVE' as DbSubscriptionStatus,
     current_period_start: '2023-05-13T12:00:00Z',
     current_period_end: '2023-06-13T12:00:00Z',
     cancel_at_period_end: false,
@@ -70,9 +70,7 @@ describe('Subscription Service', () => {
   function setupSupabaseSuccess() {
     mockSupabase.single.mockResolvedValue({ data: mockSubscription, error: null });
     mockSupabase.maybeSingle.mockResolvedValue({ data: mockSubscription, error: null });
-    jest
-      .requireMock('@/lib/supabase/server')
-      .createServerSupabaseClient.mockReturnValue(mockSupabase);
+    (createSupabaseServerClient as jest.Mock).mockReturnValue(mockSupabase);
   }
 
   // Set up Supabase mock for error scenario
@@ -80,18 +78,14 @@ describe('Subscription Service', () => {
     const error = { message: 'Database error', code: 'ERROR' };
     mockSupabase.single.mockResolvedValue({ data: null, error });
     mockSupabase.maybeSingle.mockResolvedValue({ data: null, error });
-    jest
-      .requireMock('@/lib/supabase/server')
-      .createServerSupabaseClient.mockReturnValue(mockSupabase);
+    (createSupabaseServerClient as jest.Mock).mockReturnValue(mockSupabase);
   }
 
   // Set up Supabase mock for not found scenario
   function setupSupabaseNotFound() {
     mockSupabase.single.mockResolvedValue({ data: null, error: null });
     mockSupabase.maybeSingle.mockResolvedValue({ data: null, error: null });
-    jest
-      .requireMock('@/lib/supabase/server')
-      .createServerSupabaseClient.mockReturnValue(mockSupabase);
+    (createSupabaseServerClient as jest.Mock).mockReturnValue(mockSupabase);
   }
 
   describe('getSubscriptionByStripeId', () => {
@@ -147,7 +141,7 @@ describe('Subscription Service', () => {
         user_id: 'user123',
         stripe_customer_id: 'cus_123456',
         stripe_subscription_id: 'sub_123456',
-        status: 'active' as SubscriptionStatus,
+        status: 'ACTIVE' as DbSubscriptionStatus,
         current_period_start: '2023-05-13T12:00:00Z',
         current_period_end: '2023-06-13T12:00:00Z',
         cancel_at_period_end: false,
@@ -193,7 +187,7 @@ describe('Subscription Service', () => {
         user_id: 'user123',
         stripe_customer_id: 'cus_123456',
         stripe_subscription_id: 'sub_123456',
-        status: 'active' as SubscriptionStatus,
+        status: 'ACTIVE' as DbSubscriptionStatus,
         current_period_start: '2023-05-13T12:00:00Z',
         current_period_end: '2023-06-13T12:00:00Z',
         cancel_at_period_end: false,
@@ -235,7 +229,7 @@ describe('Subscription Service', () => {
       });
 
       const params = {
-        status: 'active' as SubscriptionStatus,
+        status: 'ACTIVE' as DbSubscriptionStatus,
         current_period_end: '2023-07-13T12:00:00Z',
       };
 
@@ -280,7 +274,7 @@ describe('Subscription Service', () => {
       });
 
       const params = {
-        status: 'active' as SubscriptionStatus,
+        status: 'CANCELED' as DbSubscriptionStatus,
         current_period_end: '2023-07-13T12:00:00Z',
       };
 
@@ -318,9 +312,7 @@ describe('Subscription Service', () => {
       // Override the mock subscription for school test
       const schoolSubscription = { ...mockSubscription, user_id: null, school_id: 'school123' };
       mockSupabase.maybeSingle.mockResolvedValue({ data: schoolSubscription, error: null });
-      jest
-        .requireMock('@/lib/supabase/server')
-        .createServerSupabaseClient.mockReturnValue(mockSupabase);
+      (createSupabaseServerClient as jest.Mock).mockReturnValue(mockSupabase);
 
       const result = await getSubscriptionBySchoolId('school123');
 
@@ -347,13 +339,11 @@ describe('Subscription Service', () => {
       // Update the mock to use ACTIVE status in the response
       const activeSubscription = {
         ...mockSubscription,
-        status: 'active' as SubscriptionStatus,
+        status: 'ACTIVE' as DbSubscriptionStatus,
         current_period_end: '2099-12-31T23:59:59Z', // Future date to ensure it's always active
       };
       mockSupabase.maybeSingle.mockResolvedValue({ data: activeSubscription, error: null });
-      jest
-        .requireMock('@/lib/supabase/server')
-        .createServerSupabaseClient.mockReturnValue(mockSupabase);
+      (createSupabaseServerClient as jest.Mock).mockReturnValue(mockSupabase);
 
       const result = await hasActiveUserSubscription('user123');
 
@@ -363,12 +353,10 @@ describe('Subscription Service', () => {
     it('should return false for inactive subscription', async () => {
       const inactiveSubscription = {
         ...mockSubscription,
-        status: 'canceled' as SubscriptionStatus,
+        status: 'CANCELED' as DbSubscriptionStatus,
       };
       mockSupabase.maybeSingle.mockResolvedValue({ data: inactiveSubscription, error: null });
-      jest
-        .requireMock('@/lib/supabase/server')
-        .createServerSupabaseClient.mockReturnValue(mockSupabase);
+      (createSupabaseServerClient as jest.Mock).mockReturnValue(mockSupabase);
 
       const result = await hasActiveUserSubscription('user123');
 
@@ -391,13 +379,11 @@ describe('Subscription Service', () => {
         ...mockSubscription,
         user_id: null,
         school_id: 'school123',
-        status: 'active' as SubscriptionStatus,
+        status: 'ACTIVE' as DbSubscriptionStatus,
         current_period_end: '2099-12-31T23:59:59Z', // Future date to ensure it's always active
       };
       mockSupabase.maybeSingle.mockResolvedValue({ data: schoolSubscription, error: null });
-      jest
-        .requireMock('@/lib/supabase/server')
-        .createServerSupabaseClient.mockReturnValue(mockSupabase);
+      (createSupabaseServerClient as jest.Mock).mockReturnValue(mockSupabase);
 
       const result = await hasActiveSchoolSubscription('school123');
 

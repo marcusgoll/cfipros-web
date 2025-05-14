@@ -6,18 +6,21 @@
  * update the subscription status in the database.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import type Stripe from 'stripe';
 import { stripe } from '@/lib/stripe/client';
-import type { 
-  SubscriptionCreateParams 
-} from '@/lib/types/subscription';
-import type { SubscriptionStatus } from '@/lib/stripe/types';
-import { 
-  createSubscription, 
-  getSubscriptionByStripeId, 
-  updateSubscription 
+
+// Type imports
+import type { SubscriptionCreateParams, DbSubscriptionStatus } from '@/lib/types/subscription';
+
+// Value imports for services
+import {
+  createSubscription,
+  getSubscriptionByStripeId,
+  updateSubscription,
 } from '@/services/subscriptionService';
+import { supabaseAdmin } from '@/services/subscriptionService';
 
 /**
  * Handles Stripe webhook events
@@ -28,20 +31,13 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get('stripe-signature');
 
     if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-      return NextResponse.json(
-        { error: 'Missing webhook secret or signature' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing webhook secret or signature' }, { status: 400 });
     }
 
     // Verify webhook signature
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
+      event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
       const error = err as Error;
       console.error(`Webhook signature verification failed: ${error.message}`);
@@ -56,15 +52,95 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
-      
+
+      case 'invoice.payment_succeeded': {
+        const invoiceObject = event.data.object as Stripe.Invoice;
+        // Attempt to access subscription via type assertion to any, then to string | null
+        let subscriptionIdFromInvoice: string | null = null;
+        // Cast to any to bypass strict type checking for the 'subscription' property
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawSubscription: string | Stripe.Subscription | null = (invoiceObject as any)
+          .subscription;
+
+        if (rawSubscription) {
+          if (typeof rawSubscription === 'string') {
+            subscriptionIdFromInvoice = rawSubscription;
+          } else if (typeof rawSubscription === 'object' && rawSubscription.id) {
+            // It's a Stripe.Subscription object, so get its id
+            subscriptionIdFromInvoice = rawSubscription.id;
+          }
+        }
+
+        if (subscriptionIdFromInvoice) {
+          // Ensure subscriptionIdFromInvoice is treated as a string for retrieve
+          const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionIdFromInvoice);
+
+          const user_id = stripeSubscription.metadata.user_id;
+          if (!user_id) {
+            console.error('User ID not found in subscription metadata');
+            return new Response('Webhook Error: User ID not found', {
+              status: 400,
+            });
+          }
+
+          // Update subscription status and current period
+          const subscriptionData = {
+            id: stripeSubscription.id,
+            user_id,
+            status: mapStripeStatusToDbStatus(stripeSubscription.status),
+            metadata: stripeSubscription.metadata,
+            price_id: stripeSubscription.items.data[0]?.price.id,
+            quantity: stripeSubscription.items.data[0]?.quantity,
+            cancel_at_period_end: stripeSubscription.cancel_at_period_end,
+            cancel_at: stripeSubscription.cancel_at
+              ? new Date(stripeSubscription.cancel_at * 1000).toISOString()
+              : null,
+            canceled_at: stripeSubscription.canceled_at
+              ? new Date(stripeSubscription.canceled_at * 1000).toISOString()
+              : null,
+            current_period_start: new Date(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (stripeSubscription as any).current_period_start * 1000
+            ).toISOString(),
+            current_period_end: new Date(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (stripeSubscription as any).current_period_end * 1000
+            ).toISOString(),
+            ended_at: stripeSubscription.ended_at
+              ? new Date(stripeSubscription.ended_at * 1000).toISOString()
+              : null,
+            trial_start: stripeSubscription.trial_start
+              ? new Date(stripeSubscription.trial_start * 1000).toISOString()
+              : null,
+            trial_end: stripeSubscription.trial_end
+              ? new Date(stripeSubscription.trial_end * 1000).toISOString()
+              : null,
+            stripe_subscription_id: stripeSubscription.id,
+            stripe_customer_id: stripeSubscription.customer as string,
+          };
+
+          try {
+            await supabaseAdmin.from('subscriptions').upsert(subscriptionData);
+            console.log(
+              `Updated subscription [${stripeSubscription.id}] for user [${user_id}] after payment succeeded`
+            );
+          } catch (error) {
+            console.error('Error updating subscription after payment:', error);
+            return new Response('Webhook Error: Error updating subscription after payment', {
+              status: 500,
+            });
+          }
+        }
+        break;
+      }
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -73,10 +149,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const error = err as Error;
     console.error(`Webhook error: ${error.message}`);
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
@@ -91,20 +164,26 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const userId = metadata.user_id;
   const schoolId = metadata.school_id;
 
-  if (!userId && !schoolId) {
-    console.error('Subscription created without user_id or school_id in metadata');
+  if (!userId) {
+    console.error(
+      `Subscription created (ID: ${subscription.id}) without user_id in metadata. Cannot create DB record.`
+    );
     return;
   }
 
   // Create a new subscription record
   const subscriptionData: SubscriptionCreateParams = {
-    user_id: userId || undefined,
-    school_id: schoolId || undefined,
+    user_id: userId,
+    school_id: schoolId || null,
     stripe_customer_id: subscription.customer as string,
     stripe_subscription_id: subscription.id,
-    status: subscription.status as SubscriptionStatus,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    status: mapStripeStatusToDbStatus(subscription.status),
+    current_period_start: new Date(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (subscription as any).current_period_start * 1000
+    ).toISOString(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
     cancel_at_period_end: subscription.cancel_at_period_end,
   };
 
@@ -127,9 +206,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
   // Update the subscription
   await updateSubscription(existingSubscription.id, {
-    status: subscription.status as SubscriptionStatus,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    status: mapStripeStatusToDbStatus(subscription.status),
+    current_period_start: new Date(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (subscription as any).current_period_start * 1000
+    ).toISOString(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
     cancel_at_period_end: subscription.cancel_at_period_end,
   });
 
@@ -151,9 +234,33 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   // Update the subscription status to canceled and set deleted_at
   await updateSubscription(existingSubscription.id, {
-    status: 'canceled' as SubscriptionStatus,
+    status: 'CANCELED',
     deleted_at: new Date().toISOString(),
   });
 
   console.log(`Subscription deleted: ${subscription.id}`);
+}
+
+// Helper function to map Stripe status to DB status
+function mapStripeStatusToDbStatus(stripeStatus: Stripe.Subscription.Status): DbSubscriptionStatus {
+  switch (stripeStatus) {
+    case 'active':
+      return 'ACTIVE';
+    case 'canceled':
+      return 'CANCELED';
+    case 'incomplete':
+      return 'INCOMPLETE';
+    case 'incomplete_expired':
+      return 'INCOMPLETE_EXPIRED';
+    case 'past_due':
+      return 'PAST_DUE';
+    case 'trialing':
+      return 'TRIALING';
+    case 'unpaid': // Stripe 'unpaid' can be mapped to 'PAST_DUE' or a new status if needed
+      return 'PAST_DUE';
+    default:
+      // Fallback or throw error for unhandled statuses
+      console.warn(`Unhandled Stripe subscription status: ${stripeStatus}`);
+      return 'INCOMPLETE'; // Or a more appropriate default/error status
+  }
 }

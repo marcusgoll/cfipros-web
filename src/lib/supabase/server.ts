@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export function createSupabaseServerClient() {
+function createSupabaseServerClientInternal() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -44,3 +44,6 @@ export function createSupabaseServerClient() {
     },
   });
 }
+
+// Explicitly export with the desired name
+export const createSupabaseServerClient = createSupabaseServerClientInternal;

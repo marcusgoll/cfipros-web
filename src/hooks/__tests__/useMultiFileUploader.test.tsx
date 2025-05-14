@@ -12,7 +12,7 @@ jest.mock('uuid', () => ({
 
 // Mock the validation module
 jest.mock('@/lib/validators/test-upload', () => ({
-  validateFile: jest.fn((file) => {
+  validateFile: jest.fn((file: File) => {
     // Accept jpg files for testing
     if (file.type === 'image/jpeg') {
       return { valid: true, errors: [] };

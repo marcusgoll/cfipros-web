@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Accept } from 'react-dropzone'; // Import Accept type
 
 // Constants for validation
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -19,6 +20,18 @@ export type FileValidationResult = {
   valid: boolean;
   errors: string[];
 };
+
+// Type for the function signature expected by components like TestUploadArea
+// when a custom validateFile function is provided.
+// Note: The internal validateFile in this module uses module-level constants
+// for maxSize and acceptConfig, so it won't use these params if passed directly.
+export type ValidateFileFn = (
+  file: File,
+  maxSize: number,
+  // We need to import or define Accept type if it's not globally available
+  // For now, assuming it comes from 'react-dropzone' or a similar well-known source
+  acceptConfig: Accept // Use imported Accept type
+) => FileValidationResult;
 
 // Helper function to validate file (usable on client)
 export const validateFile = (file: File): FileValidationResult => {

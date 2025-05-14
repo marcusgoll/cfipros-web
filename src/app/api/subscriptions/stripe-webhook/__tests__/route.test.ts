@@ -1,5 +1,6 @@
 import { POST } from '../route';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { stripe } from '@/lib/stripe/client';
 import {
   createSubscription,
@@ -191,7 +192,7 @@ describe('Stripe Webhook Handler', () => {
     expect(updateSubscription).toHaveBeenCalledWith(
       '123e4567-e89b-12d3-a456-426614174000',
       expect.objectContaining({
-        status: 'canceled',
+        status: 'CANCELED',
         deleted_at: expect.any(String),
       })
     );

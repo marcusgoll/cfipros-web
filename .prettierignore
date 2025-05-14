@@ -2,4 +2,5 @@ package-lock.json
 node_modules
 .next
 build
-coverage 
+coverage
+src/lib/types/database.types.ts 

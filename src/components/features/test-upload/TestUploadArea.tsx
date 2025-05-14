@@ -1,23 +1,37 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, type Accept } from 'react-dropzone';
 import { Upload, FileWarning } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { validateFile, MAX_FILE_SIZE } from '@/lib/validators/test-upload';
+import {
+  validateFile as defaultInternalValidateFile,
+  MAX_FILE_SIZE,
+  type ValidateFileFn,
+} from '@/lib/validators/test-upload';
 
 interface TestUploadAreaProps {
   onFilesSelected: (files: File[]) => void;
   disabled?: boolean;
+  validateFile?: ValidateFileFn;
 }
 
-export function TestUploadArea({ onFilesSelected, disabled = false }: TestUploadAreaProps) {
+const componentAcceptConfig: Accept = {
+  'application/pdf': ['.pdf'],
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+};
+
+export function TestUploadArea({
+  onFilesSelected,
+  disabled = false,
+  validateFile = defaultInternalValidateFile,
+}: TestUploadAreaProps) {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      // Validate files
       const validatedFiles = acceptedFiles.filter((file) => {
-        const validation = validateFile(file);
+        const validation = validateFile(file, MAX_FILE_SIZE, componentAcceptConfig);
         return validation.valid;
       });
 
@@ -25,17 +39,13 @@ export function TestUploadArea({ onFilesSelected, disabled = false }: TestUpload
         onFilesSelected(validatedFiles);
       }
     },
-    [onFilesSelected]
+    [onFilesSelected, validateFile]
   );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
     disabled,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-    },
+    accept: componentAcceptConfig,
     maxSize: MAX_FILE_SIZE,
     multiple: true,
   });
