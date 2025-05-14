@@ -33,4 +33,4 @@ export interface GeminiApiResponse {
     message: string;
     status: string;
   };
-} 
+}

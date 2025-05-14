@@ -14,13 +14,13 @@ interface NavItemProps {
 
 function NavItem({ href, icon, label, active }: NavItemProps) {
   return (
-    <Link 
-      href={href} 
+    <Link
+      href={href}
       className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-        active 
-          ? "bg-primary/10 text-primary" 
-          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+        'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+        active
+          ? 'bg-primary/10 text-primary'
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
       )}
     >
       {icon}
@@ -34,7 +34,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navigation = [
     { href: '/dashboard', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
-    { href: '/dashboard/test-upload', icon: <FileUp className="h-5 w-5" />, label: 'Upload Test Results' },
+    {
+      href: '/dashboard/test-upload',
+      icon: <FileUp className="h-5 w-5" />,
+      label: 'Upload Test Results',
+    },
     { href: '/dashboard/courses', icon: <BookOpen className="h-5 w-5" />, label: 'Courses' },
     { href: '/dashboard/schedule', icon: <Calendar className="h-5 w-5" />, label: 'Schedule' },
     { href: '/profile', icon: <User className="h-5 w-5" />, label: 'Profile' },
@@ -61,7 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
       </aside>
-      
+
       {/* Mobile navigation bar - shown on small screens */}
       <div className="md:hidden border-b bg-background p-3">
         <div className="flex items-center justify-between">
@@ -70,14 +74,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <div className="flex overflow-x-auto py-2 gap-2">
           {navigation.map((item) => (
-            <Link 
+            <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-1 px-3 py-1 rounded-md text-xs whitespace-nowrap",
-                pathname === item.href 
-                  ? "bg-primary/10 text-primary" 
-                  : "text-muted-foreground hover:text-foreground"
+                'flex items-center gap-1 px-3 py-1 rounded-md text-xs whitespace-nowrap',
+                pathname === item.href
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
               )}
             >
               {item.icon}
@@ -86,12 +90,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ))}
         </div>
       </div>
-      
+
       {/* Main content */}
       <main className="flex-1 md:ml-64">
-        <div className="py-6 px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
+        <div className="py-6 px-4 sm:px-6 lg:px-8">{children}</div>
       </main>
     </div>
   );

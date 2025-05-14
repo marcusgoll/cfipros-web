@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 // Mock matchMedia for components that use it
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -16,4 +16,4 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Global mocks can be defined here 
+// Global mocks can be defined here

@@ -102,7 +102,8 @@ export default async function DashboardPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Welcome, {studentData?.full_name || user.email}</h1>
         <p className="text-muted-foreground">
-          This is your student dashboard. Here you can track your progress, manage your course materials, and upload test results.
+          This is your student dashboard. Here you can track your progress, manage your course
+          materials, and upload test results.
         </p>
       </div>
 
@@ -112,15 +113,17 @@ export default async function DashboardPage() {
             <FileUp className="h-5 w-5 text-primary mt-1" />
             <div>
               <CardTitle>Upload Test Results</CardTitle>
-              <CardDescription>Upload your FAA Knowledge Test results for processing</CardDescription>
+              <CardDescription>
+                Upload your FAA Knowledge Test results for processing
+              </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-sm text-muted-foreground">
               Upload your test results to track your progress and identify areas for improvement.
             </p>
-            <Link 
-              href="/dashboard/test-upload" 
+            <Link
+              href="/dashboard/test-upload"
               className="text-primary hover:text-primary/80 text-sm font-medium flex items-center"
             >
               Upload now
@@ -141,8 +144,8 @@ export default async function DashboardPage() {
             <p className="mb-4 text-sm text-muted-foreground">
               Monitor your training progress across all your courses and lessons.
             </p>
-            <Link 
-              href="/dashboard/progress" 
+            <Link
+              href="/dashboard/progress"
               className="text-primary hover:text-primary/80 text-sm font-medium flex items-center"
             >
               View progress
@@ -163,8 +166,8 @@ export default async function DashboardPage() {
             <p className="mb-4 text-sm text-muted-foreground">
               View all your enrolled courses and access your study materials.
             </p>
-            <Link 
-              href="/dashboard/courses" 
+            <Link
+              href="/dashboard/courses"
               className="text-primary hover:text-primary/80 text-sm font-medium flex items-center"
             >
               View courses

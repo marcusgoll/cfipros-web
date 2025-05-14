@@ -20,23 +20,23 @@ export const useMultiFileUploader = (): UseMultiFileUploaderReturn => {
 
   // Add files to the queue
   const addFiles = useCallback((newFiles: File[]) => {
-    const validatedFiles = newFiles.map(file => {
+    const validatedFiles = newFiles.map((file) => {
       const validation = validateFile(file);
       return {
         clientId: uuidv4(),
         file,
         status: validation.valid ? 'pending' : 'error_upload',
         progress: 0,
-        errorMessage: validation.valid ? undefined : validation.errors.join(', ')
+        errorMessage: validation.valid ? undefined : validation.errors.join(', '),
       } as UploadableFile;
     });
 
-    setFiles(currentFiles => [...currentFiles, ...validatedFiles]);
+    setFiles((currentFiles) => [...currentFiles, ...validatedFiles]);
   }, []);
 
   // Remove a file from the queue
   const removeFile = useCallback((clientId: string) => {
-    setFiles(currentFiles => currentFiles.filter(file => file.clientId !== clientId));
+    setFiles((currentFiles) => currentFiles.filter((file) => file.clientId !== clientId));
   }, []);
 
   // Clear all files
@@ -45,36 +45,33 @@ export const useMultiFileUploader = (): UseMultiFileUploaderReturn => {
   }, []);
 
   // Calculate overall progress
-  const overallProgress = files.length 
-    ? Math.round(files.reduce((sum, file) => sum + file.progress, 0) / files.length) 
+  const overallProgress = files.length
+    ? Math.round(files.reduce((sum, file) => sum + file.progress, 0) / files.length)
     : 0;
 
   // Update progress for a specific file
   const updateFileProgress = useCallback((clientId: string, progress: number) => {
-    setFiles(currentFiles => 
-      currentFiles.map(file => 
-        file.clientId === clientId 
-          ? { ...file, progress } 
-          : file
-      )
+    setFiles((currentFiles) =>
+      currentFiles.map((file) => (file.clientId === clientId ? { ...file, progress } : file))
     );
   }, []);
 
   // Update file status
-  const updateFileStatus = useCallback((clientId: string, status: UploadableFile['status'], errorMessage?: string) => {
-    setFiles(currentFiles => 
-      currentFiles.map(file => 
-        file.clientId === clientId 
-          ? { ...file, status, errorMessage } 
-          : file
-      )
-    );
-  }, []);
+  const updateFileStatus = useCallback(
+    (clientId: string, status: UploadableFile['status'], errorMessage?: string) => {
+      setFiles((currentFiles) =>
+        currentFiles.map((file) =>
+          file.clientId === clientId ? { ...file, status, errorMessage } : file
+        )
+      );
+    },
+    []
+  );
 
   // Upload all pending files
   const uploadAllFiles = useCallback(async () => {
-    const filesToUpload = files.filter(file => file.status === 'pending');
-    
+    const filesToUpload = files.filter((file) => file.status === 'pending');
+
     if (filesToUpload.length === 0) {
       return { files: [], overallSuccess: false };
     }
@@ -116,19 +113,19 @@ export const useMultiFileUploader = (): UseMultiFileUploaderReturn => {
       // Handle global upload error
       for (const file of filesToUpload) {
         updateFileStatus(
-          file.clientId, 
-          'error_upload', 
+          file.clientId,
+          'error_upload',
           error instanceof Error ? error.message : 'Unknown upload error'
         );
       }
-      
-      return { 
-        files: filesToUpload.map(file => ({
+
+      return {
+        files: filesToUpload.map((file) => ({
           success: false,
           originalName: file.clientId,
-          error: error instanceof Error ? error.message : 'Unknown upload error'
+          error: error instanceof Error ? error.message : 'Unknown upload error',
         })),
-        overallSuccess: false 
+        overallSuccess: false,
       };
     } finally {
       setIsUploading(false);
@@ -142,8 +139,8 @@ export const useMultiFileUploader = (): UseMultiFileUploaderReturn => {
     clearFiles,
     uploadAllFiles,
     isUploading,
-    overallProgress
+    overallProgress,
   };
 };
 
-export default useMultiFileUploader; 
+export default useMultiFileUploader;

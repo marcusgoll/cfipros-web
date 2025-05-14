@@ -16,11 +16,11 @@ export function TestUploadArea({ onFilesSelected, disabled = false }: TestUpload
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       // Validate files
-      const validatedFiles = acceptedFiles.filter(file => {
+      const validatedFiles = acceptedFiles.filter((file) => {
         const validation = validateFile(file);
         return validation.valid;
       });
-      
+
       if (validatedFiles.length > 0) {
         onFilesSelected(validatedFiles);
       }
@@ -34,7 +34,7 @@ export function TestUploadArea({ onFilesSelected, disabled = false }: TestUpload
     accept: {
       'application/pdf': ['.pdf'],
       'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png']
+      'image/png': ['.png'],
     },
     maxSize: MAX_FILE_SIZE,
     multiple: true,
@@ -54,7 +54,7 @@ export function TestUploadArea({ onFilesSelected, disabled = false }: TestUpload
           `}
         >
           <input {...getInputProps()} />
-          
+
           {isDragActive ? (
             <div className="flex flex-col items-center justify-center gap-4">
               <Upload className="h-10 w-10 text-primary animate-pulse" />
@@ -74,12 +74,7 @@ export function TestUploadArea({ onFilesSelected, disabled = false }: TestUpload
                   Accepted file types: PDF, JPG, PNG (Max {MAX_FILE_SIZE / 1024 / 1024}MB each)
                 </p>
               </div>
-              <Button 
-                type="button" 
-                variant="secondary" 
-                size="sm"
-                disabled={disabled}
-              >
+              <Button type="button" variant="secondary" size="sm" disabled={disabled}>
                 Select Files
               </Button>
             </div>
@@ -88,4 +83,4 @@ export function TestUploadArea({ onFilesSelected, disabled = false }: TestUpload
       </CardContent>
     </Card>
   );
-} 
+}

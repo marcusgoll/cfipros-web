@@ -20,4 +20,4 @@ export default defineConfig({
     include: ['**/__tests__/**/*.test.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**'],
   },
-}); 
+});

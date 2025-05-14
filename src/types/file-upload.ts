@@ -17,4 +17,4 @@ export interface UploadResponse {
 export interface UploadBatchResponse {
   files: UploadResponse[];
   overallSuccess: boolean;
-} 
+}

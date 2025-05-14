@@ -44,7 +44,7 @@ jest.mock('@/services/gemini-ocr-service', () => ({
     fileId: 'test-file-uuid',
     status: 'success',
     rawText: 'Extracted test content',
-    geminiModelUsed: 'gemini-pro-vision'
+    geminiModelUsed: 'gemini-pro-vision',
   }),
 }));
 
@@ -78,7 +78,7 @@ describe('Test Upload API Route', () => {
     // Mock File.prototype.arrayBuffer
     originalArrayBuffer = File.prototype.arrayBuffer;
     File.prototype.arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(10));
-    
+
     // Spy on console.log and console.error
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -131,7 +131,7 @@ describe('Test Upload API Route', () => {
         overallSuccess: true,
       })
     );
-    
+
     // Verify OCR processing was triggered
     // Note: In our implementation, processOcrInBackground is called but not awaited,
     // so we can't directly test the function but we can check if processDocumentWithRetry was called
@@ -172,7 +172,7 @@ describe('Test Upload API Route', () => {
         overallSuccess: false,
       })
     );
-    
+
     // Verify OCR was NOT called for invalid files
     expect(processDocumentWithRetry).not.toHaveBeenCalled();
   });
@@ -215,7 +215,7 @@ describe('Test Upload API Route', () => {
         overallSuccess: false,
       })
     );
-    
+
     // Verify OCR was called only for the valid file
     expect(processDocumentWithRetry).toHaveBeenCalledTimes(1);
   });
@@ -243,7 +243,7 @@ describe('Test Upload API Route', () => {
         overallSuccess: false,
       })
     );
-    
+
     // OCR should not be called if file save fails
     expect(processDocumentWithRetry).not.toHaveBeenCalled();
   });

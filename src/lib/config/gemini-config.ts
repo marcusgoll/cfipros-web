@@ -4,7 +4,7 @@
  */
 
 // Default Gemini model for OCR processing - using the vision-capable model
-export const GEMINI_MODEL_NAME = 'gemini-pro-vision';
+export const GEMINI_MODEL_NAME = 'gemini-1.5-flash';
 
 /**
  * Get the Gemini API key from environment variables
@@ -12,13 +12,15 @@ export const GEMINI_MODEL_NAME = 'gemini-pro-vision';
  */
 export function getGeminiApiKey(): string {
   const apiKey = process.env.GEMINI_API_KEY;
-  
+
   if (!apiKey) {
     // Log the error and throw a descriptive error
     console.error('GEMINI_API_KEY environment variable is not set');
-    throw new Error('Gemini API key not configured. Please set the GEMINI_API_KEY environment variable.');
+    throw new Error(
+      'Gemini API key not configured. Please set the GEMINI_API_KEY environment variable.'
+    );
   }
-  
+
   return apiKey;
 }
 
@@ -43,4 +45,4 @@ export function getGeminiConfig(): GeminiConfig {
     maxRetries: 2,
     timeoutMs: 30000, // 30 second timeout
   };
-} 
+}
