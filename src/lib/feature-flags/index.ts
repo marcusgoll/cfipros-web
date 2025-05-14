@@ -5,6 +5,8 @@
  * helper functions to check flag status in both server and client components.
  */
 
+import { posthog } from 'posthog-js';
+
 // Define all feature flags with their default values
 export const FEATURE_FLAGS = {
   UNIFIED_SIGNUP_FLOW: false, // Controls the unified vs. role-specific signup flow
@@ -27,7 +29,25 @@ export function isFeatureEnabled(flag: FeatureFlag | undefined): boolean {
     return true; // If no flag is specified, consider it enabled (not gated)
   }
 
-  // First check if there's a runtime env var (for client components)
+  // 1. Check PostHog (if client-side and PostHog is available)
+  if (typeof window !== 'undefined' && posthog && typeof posthog.isFeatureEnabled === 'function') {
+    // Check if PostHog has loaded flags and knows this specific flag
+    // getFeatureFlagPayload returns the payload or undefined if not found/loaded
+    const flagPayload = posthog.getFeatureFlagPayload(flag);
+    if (flagPayload !== undefined) {
+      // If PostHog has a payload for the flag, use its evaluation.
+      // isFeatureEnabled will use the payload if available, or evaluate based on rollout if no payload.
+      return posthog.isFeatureEnabled(flag);
+    }
+    // If no payload, it means PostHog might not have this flag defined explicitly with a payload,
+    // but isFeatureEnabled might still return a value based on rollout rules or if it's a simple boolean flag.
+    // However, to be safe and ensure we only use PostHog if it *definitively* has the flag,
+    // we can be more strict. For now, the payload check is a good indicator.
+    // Alternatively, simply calling posthog.isFeatureEnabled(flag) and relying on its internal
+    // fallback to 'false' if unknown might be an option, depending on desired behavior.
+  }
+
+  // 2. Check if there's a runtime env var (for client components)
   const envValue =
     typeof window !== 'undefined' ? window.__ENV__?.FEATURE_FLAGS?.[flag] : undefined;
 

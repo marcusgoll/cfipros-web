@@ -34,7 +34,6 @@ export function TopBar() {
 
   // Check for enhanced navigation feature flag
   const enhancedNavEnabled = useFeatureFlag('ENHANCED_NAV_ENABLED');
-  const companyLinkEnabled = useFeatureFlag('COMPANY_LINK_ENABLED');
 
   useEffect(() => {
     const checkAuthState = async () => {
@@ -75,12 +74,14 @@ export function TopBar() {
         {/* Desktop Navigation */}
         {enhancedNavEnabled && (
           <nav className="hidden md:flex gap-6 items-center">
-            <NavLink href="/why" title="Why CFIPros?" />
-            <NavLink href="/products" title="Products" />
-            <NavLink href="/pricing" title="Pricing" />
-            <NavLink href="/docs" title="Docs" />
-            <NavLink href="/community" title="Community" />
-            {companyLinkEnabled && <NavLink href="/company" title="Company" />}
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.href}
+                href={link.href}
+                title={link.title}
+                featureFlag={link.featureFlag}
+              />
+            ))}
           </nav>
         )}
 
