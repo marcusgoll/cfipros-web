@@ -84,13 +84,14 @@ describe('ProfileForm', () => {
   it('shows error message when update fails', async () => {
     // Mock failed profile update
     const errorMessage = 'Profile update failed';
-    // Create a properly typed mock return value
-    const mockErrorResult = {
+
+    // Type the error properly for the mock
+    type UpdateProfileReturn = Awaited<ReturnType<typeof updateProfile>>;
+
+    // Mock the resolved promise with a type-safe error object
+    (updateProfile as jest.MockedFunction<typeof updateProfile>).mockResolvedValue({
       error: { message: errorMessage },
-    };
-    (updateProfile as jest.MockedFunction<typeof updateProfile>).mockResolvedValue(
-      mockErrorResult as ReturnType<typeof updateProfile>
-    );
+    } as unknown as UpdateProfileReturn);
 
     render(<ProfileForm user={mockUser} profile={mockProfile} />);
 
