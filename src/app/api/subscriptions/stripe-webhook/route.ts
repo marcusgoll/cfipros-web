@@ -141,7 +141,6 @@ export async function POST(req: NextRequest) {
         }
         break;
       }
-
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -160,6 +159,7 @@ export async function POST(req: NextRequest) {
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   console.log(`Processing subscription created: ${subscription.id}`);
 
+  // Extract metadata to determine if this is a user or school subscription
   const metadata = subscription.metadata || {};
   const userId = metadata.user_id;
   const schoolId = metadata.school_id;

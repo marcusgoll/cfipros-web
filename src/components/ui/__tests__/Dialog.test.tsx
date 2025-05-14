@@ -89,6 +89,7 @@ describe('Dialog Component', () => {
 
     // Find the close button by its type attribute and position (it's a button in the dialog)
     const closeButton = screen.getByRole('button', {
+
       name: 'Close',
     });
 
