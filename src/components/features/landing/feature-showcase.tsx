@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   BarChart3,
   Users,
@@ -17,208 +17,209 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
+} from 'lucide-react';
 
 // Define the feature categories and items
 const categories = [
-  { id: "all", label: "All features" },
-  { id: "analytics", label: "Analytics" },
-  { id: "training", label: "Training" },
-  { id: "management", label: "Management" },
-]
+  { id: 'all', label: 'All features' },
+  { id: 'analytics', label: 'Analytics' },
+  { id: 'training', label: 'Training' },
+  { id: 'management', label: 'Management' },
+];
 
 const features = [
   {
-    id: "test-analysis",
+    id: 'test-analysis',
     icon: <BarChart3 className="h-5 w-5" />,
-    title: "Knowledge Test Analysis",
+    title: 'Knowledge Test Analysis',
     description:
-      "Understand student performance with event-based analytics, cohorts, and conversion funnels. Includes auto capture & SQL access.",
-    categories: ["analytics"],
+      'Understand student performance with event-based analytics, cohorts, and conversion funnels. Includes auto capture & SQL access.',
+    categories: ['analytics'],
     content: {
-      title: "Knowledge Test Analysis",
-      description: "Identify weak areas and track improvement over time",
+      title: 'Knowledge Test Analysis',
+      description: 'Identify weak areas and track improvement over time',
       metrics: [
-        { label: "Average score", value: "82.5%" },
-        { label: "Improvement rate", value: "14.7%" },
-        { label: "Completion rate", value: "94.2%" },
+        { label: 'Average score', value: '82.5%' },
+        { label: 'Improvement rate', value: '14.7%' },
+        { label: 'Completion rate', value: '94.2%' },
       ],
       chart: {
-        type: "bar",
+        type: 'bar',
         data: [65, 78, 86, 92],
-        labels: ["Initial", "Week 2", "Week 4", "Final"],
+        labels: ['Initial', 'Week 2', 'Week 4', 'Final'],
       },
     },
   },
   {
-    id: "student-tracking",
+    id: 'student-tracking',
     icon: <Users className="h-5 w-5" />,
-    title: "Student Tracking",
-    description: "Monitor student progress through their training program with detailed metrics and milestones.",
-    categories: ["management"],
+    title: 'Student Tracking',
+    description:
+      'Monitor student progress through their training program with detailed metrics and milestones.',
+    categories: ['management'],
     content: {
-      title: "Student Tracking",
-      description: "Comprehensive student management and progress tracking",
+      title: 'Student Tracking',
+      description: 'Comprehensive student management and progress tracking',
       metrics: [
-        { label: "Active students", value: "24" },
-        { label: "Avg. completion", value: "87%" },
-        { label: "Retention rate", value: "93%" },
+        { label: 'Active students', value: '24' },
+        { label: 'Avg. completion', value: '87%' },
+        { label: 'Retention rate', value: '93%' },
       ],
       chart: {
-        type: "line",
+        type: 'line',
         data: [10, 15, 22, 24],
-        labels: ["Q1", "Q2", "Q3", "Q4"],
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
       },
     },
   },
   {
-    id: "study-materials",
+    id: 'study-materials',
     icon: <FileText className="h-5 w-5" />,
-    title: "Custom Study Materials",
-    description: "Generate personalized study guides based on individual performance data.",
-    categories: ["training"],
+    title: 'Custom Study Materials',
+    description: 'Generate personalized study guides based on individual performance data.',
+    categories: ['training'],
     content: {
-      title: "Custom Study Materials",
+      title: 'Custom Study Materials',
       description: "AI-generated study materials tailored to each student's needs",
       metrics: [
-        { label: "Materials created", value: "156" },
-        { label: "Topics covered", value: "42" },
-        { label: "Effectiveness", value: "91%" },
+        { label: 'Materials created', value: '156' },
+        { label: 'Topics covered', value: '42' },
+        { label: 'Effectiveness', value: '91%' },
       ],
       chart: {
-        type: "pie",
+        type: 'pie',
         data: [35, 25, 20, 20],
-        labels: ["Weather", "Navigation", "Regulations", "Other"],
+        labels: ['Weather', 'Navigation', 'Regulations', 'Other'],
       },
     },
   },
   {
-    id: "training-schedule",
+    id: 'training-schedule',
     icon: <Clock className="h-5 w-5" />,
-    title: "Training Schedule",
-    description: "Optimize training schedules based on student availability and learning patterns.",
-    categories: ["management", "training"],
+    title: 'Training Schedule',
+    description: 'Optimize training schedules based on student availability and learning patterns.',
+    categories: ['management', 'training'],
     content: {
-      title: "Training Schedule",
-      description: "Intelligent scheduling to optimize learning and resource utilization",
+      title: 'Training Schedule',
+      description: 'Intelligent scheduling to optimize learning and resource utilization',
       metrics: [
-        { label: "Utilization rate", value: "94.2%" },
-        { label: "Instructor hours", value: "128/mo" },
-        { label: "Student satisfaction", value: "4.8/5" },
+        { label: 'Utilization rate', value: '94.2%' },
+        { label: 'Instructor hours', value: '128/mo' },
+        { label: 'Student satisfaction', value: '4.8/5' },
       ],
       chart: {
-        type: "bar",
+        type: 'bar',
         data: [28, 32, 36, 32],
-        labels: ["Mon", "Tue", "Wed", "Thu"],
+        labels: ['Mon', 'Tue', 'Wed', 'Thu'],
       },
     },
   },
   {
-    id: "instructor-dashboard",
+    id: 'instructor-dashboard',
     icon: <LayoutDashboard className="h-5 w-5" />,
-    title: "Instructor Dashboard",
-    description: "Comprehensive overview of all students, classes, and performance metrics.",
-    categories: ["analytics", "management"],
+    title: 'Instructor Dashboard',
+    description: 'Comprehensive overview of all students, classes, and performance metrics.',
+    categories: ['analytics', 'management'],
     content: {
-      title: "Instructor Dashboard",
-      description: "All your training data in one place with actionable insights",
+      title: 'Instructor Dashboard',
+      description: 'All your training data in one place with actionable insights',
       metrics: [
-        { label: "Students", value: "24" },
-        { label: "Pass rate", value: "92%" },
-        { label: "Avg. training time", value: "45 days" },
+        { label: 'Students', value: '24' },
+        { label: 'Pass rate', value: '92%' },
+        { label: 'Avg. training time', value: '45 days' },
       ],
       chart: {
-        type: "line",
+        type: 'line',
         data: [75, 82, 88, 94],
-        labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
       },
     },
   },
   {
-    id: "performance-metrics",
+    id: 'performance-metrics',
     icon: <Gauge className="h-5 w-5" />,
-    title: "Performance Metrics",
-    description: "Track key performance indicators for students and instructors.",
-    categories: ["analytics"],
+    title: 'Performance Metrics',
+    description: 'Track key performance indicators for students and instructors.',
+    categories: ['analytics'],
     content: {
-      title: "Performance Metrics",
-      description: "Comprehensive analytics to measure and improve training effectiveness",
+      title: 'Performance Metrics',
+      description: 'Comprehensive analytics to measure and improve training effectiveness',
       metrics: [
-        { label: "Knowledge retention", value: "86%" },
-        { label: "Skill proficiency", value: "92%" },
-        { label: "Time efficiency", value: "+24%" },
+        { label: 'Knowledge retention', value: '86%' },
+        { label: 'Skill proficiency', value: '92%' },
+        { label: 'Time efficiency', value: '+24%' },
       ],
       chart: {
-        type: "radar",
+        type: 'radar',
         data: [85, 90, 78, 92, 88],
-        labels: ["Knowledge", "Skills", "Attitude", "Communication", "Decision-making"],
+        labels: ['Knowledge', 'Skills', 'Attitude', 'Communication', 'Decision-making'],
       },
     },
   },
   {
-    id: "certification-tracking",
+    id: 'certification-tracking',
     icon: <GraduationCap className="h-5 w-5" />,
-    title: "Certification Tracking",
-    description: "Monitor progress toward certification requirements and deadlines.",
-    categories: ["management"],
+    title: 'Certification Tracking',
+    description: 'Monitor progress toward certification requirements and deadlines.',
+    categories: ['management'],
     content: {
-      title: "Certification Tracking",
-      description: "Stay on top of certification requirements and deadlines",
+      title: 'Certification Tracking',
+      description: 'Stay on top of certification requirements and deadlines',
       metrics: [
-        { label: "Certifications issued", value: "156" },
-        { label: "Avg. completion time", value: "42 days" },
-        { label: "First-time pass rate", value: "89%" },
+        { label: 'Certifications issued', value: '156' },
+        { label: 'Avg. completion time', value: '42 days' },
+        { label: 'First-time pass rate', value: '89%' },
       ],
       chart: {
-        type: "bar",
+        type: 'bar',
         data: [12, 18, 24, 32],
-        labels: ["Q1", "Q2", "Q3", "Q4"],
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
       },
     },
   },
   {
-    id: "lesson-plans",
+    id: 'lesson-plans',
     icon: <BookOpen className="h-5 w-5" />,
-    title: "Lesson Plans",
-    description: "Create and manage structured lesson plans based on student needs.",
-    categories: ["training"],
+    title: 'Lesson Plans',
+    description: 'Create and manage structured lesson plans based on student needs.',
+    categories: ['training'],
     content: {
-      title: "Lesson Plans",
-      description: "Data-driven lesson planning for more effective training",
+      title: 'Lesson Plans',
+      description: 'Data-driven lesson planning for more effective training',
       metrics: [
-        { label: "Plans created", value: "342" },
-        { label: "Effectiveness score", value: "4.7/5" },
-        { label: "Time saved", value: "4.2 hrs/week" },
+        { label: 'Plans created', value: '342' },
+        { label: 'Effectiveness score', value: '4.7/5' },
+        { label: 'Time saved', value: '4.2 hrs/week' },
       ],
       chart: {
-        type: "pie",
+        type: 'pie',
         data: [40, 30, 20, 10],
-        labels: ["Ground", "Flight", "Simulator", "Briefing"],
+        labels: ['Ground', 'Flight', 'Simulator', 'Briefing'],
       },
     },
   },
   {
-    id: "analytics-reports",
+    id: 'analytics-reports',
     icon: <PieChartIcon className="h-5 w-5" />,
-    title: "Analytics Reports",
-    description: "Generate comprehensive reports on student and school performance.",
-    categories: ["analytics"],
+    title: 'Analytics Reports',
+    description: 'Generate comprehensive reports on student and school performance.',
+    categories: ['analytics'],
     content: {
-      title: "Analytics Reports",
-      description: "Comprehensive reporting for students, instructors, and management",
+      title: 'Analytics Reports',
+      description: 'Comprehensive reporting for students, instructors, and management',
       metrics: [
-        { label: "Reports generated", value: "256/mo" },
-        { label: "Data points", value: "12,450" },
-        { label: "Insights delivered", value: "86/mo" },
+        { label: 'Reports generated', value: '256/mo' },
+        { label: 'Data points', value: '12,450' },
+        { label: 'Insights delivered', value: '86/mo' },
       ],
       chart: {
-        type: "line",
+        type: 'line',
         data: [42, 56, 68, 82],
-        labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
       },
     },
   },
-]
+];
 
 // Chart components (simplified for demo)
 const BarChart = ({ data, labels }: { data: number[]; labels: string[] }) => (
@@ -226,19 +227,24 @@ const BarChart = ({ data, labels }: { data: number[]; labels: string[] }) => (
     <div className="flex h-40 items-end justify-between gap-2">
       {data.map((value, i) => (
         <div key={i} className="relative flex w-full flex-col items-center">
-          <div className="w-full rounded-t bg-primary" style={{ height: `${(value / 100) * 160}px` }}></div>
+          <div
+            className="w-full rounded-t bg-primary"
+            style={{ height: `${(value / 100) * 160}px` }}
+          ></div>
           <span className="mt-2 text-xs text-muted-foreground">{labels[i]}</span>
         </div>
       ))}
     </div>
   </div>
-)
+);
 
 const LineChart = ({ data, labels }: { data: number[]; labels: string[] }) => (
   <div className="h-48 w-full">
     <svg viewBox="0 0 300 100" className="h-40 w-full overflow-visible">
       <polyline
-        points={data.map((value, i) => `${(i / (data.length - 1)) * 300},${100 - (value / 100) * 100}`).join(" ")}
+        points={data
+          .map((value, i) => `${(i / (data.length - 1)) * 300},${100 - (value / 100) * 100}`)
+          .join(' ')}
         fill="none"
         stroke="hsl(var(--primary))"
         strokeWidth="2"
@@ -261,47 +267,47 @@ const LineChart = ({ data, labels }: { data: number[]; labels: string[] }) => (
       ))}
     </div>
   </div>
-)
+);
 
 const PieChart = ({ data }: { data: number[]; labels: string[] }) => {
-  let cumulativePercent = 0
-  const total = data.reduce((acc, val) => acc + val, 0)
+  let cumulativePercent = 0;
+  const total = data.reduce((acc, val) => acc + val, 0);
 
   return (
     <div className="flex h-48 items-center justify-center">
       <svg width="150" height="150" viewBox="0 0 100 100">
         {data.map((value, i) => {
-          const startPercent = cumulativePercent
-          const percent = value / total
-          cumulativePercent += percent
+          const startPercent = cumulativePercent;
+          const percent = value / total;
+          cumulativePercent += percent;
 
-          const startX = Math.cos(2 * Math.PI * startPercent) * 50 + 50
-          const startY = Math.sin(2 * Math.PI * startPercent) * 50 + 50
-          const endX = Math.cos(2 * Math.PI * cumulativePercent) * 50 + 50
-          const endY = Math.sin(2 * Math.PI * cumulativePercent) * 50 + 50
+          const startX = Math.cos(2 * Math.PI * startPercent) * 50 + 50;
+          const startY = Math.sin(2 * Math.PI * startPercent) * 50 + 50;
+          const endX = Math.cos(2 * Math.PI * cumulativePercent) * 50 + 50;
+          const endY = Math.sin(2 * Math.PI * cumulativePercent) * 50 + 50;
 
-          const largeArcFlag = percent > 0.5 ? 1 : 0
+          const largeArcFlag = percent > 0.5 ? 1 : 0;
 
           const pathData = [
             `M 50 50`,
             `L ${startX} ${startY}`,
             `A 50 50 0 ${largeArcFlag} 1 ${endX} ${endY}`,
             `Z`,
-          ].join(" ")
+          ].join(' ');
 
           const colors = [
-            "hsl(var(--primary))",
-            "hsl(var(--primary) / 0.8)",
-            "hsl(var(--primary) / 0.6)",
-            "hsl(var(--primary) / 0.4)",
-          ]
+            'hsl(var(--primary))',
+            'hsl(var(--primary) / 0.8)',
+            'hsl(var(--primary) / 0.6)',
+            'hsl(var(--primary) / 0.4)',
+          ];
 
-          return <path key={i} d={pathData} fill={colors[i % colors.length]} />
+          return <path key={i} d={pathData} fill={colors[i % colors.length]} />;
         })}
       </svg>
     </div>
-  )
-}
+  );
+};
 
 const RadarChart = ({ data }: { data: number[]; labels: string[] }) => (
   <div className="flex h-48 items-center justify-center">
@@ -313,11 +319,11 @@ const RadarChart = ({ data }: { data: number[]; labels: string[] }) => (
         <polygon
           points={data
             .map((value, i) => {
-              const angle = (i / data.length) * 2 * Math.PI - Math.PI / 2
-              const radius = (value / 100) * 50
-              return `${50 + radius * Math.cos(angle)},${50 + radius * Math.sin(angle)}`
+              const angle = (i / data.length) * 2 * Math.PI - Math.PI / 2;
+              const radius = (value / 100) * 50;
+              return `${50 + radius * Math.cos(angle)},${50 + radius * Math.sin(angle)}`;
             })
-            .join(" ")}
+            .join(' ')}
           fill="hsla(var(--primary) / 0.2)"
           stroke="hsl(var(--primary))"
           strokeWidth="1"
@@ -325,33 +331,35 @@ const RadarChart = ({ data }: { data: number[]; labels: string[] }) => (
       </svg>
     </div>
   </div>
-)
+);
 
 export function FeatureShowcase() {
-  const [activeCategory, setActiveCategory] = useState("all")
-  const [activeFeature, setActiveFeature] = useState(features[0].id)
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeFeature, setActiveFeature] = useState(features[0].id);
 
   // Filter features based on active category
   const filteredFeatures =
-    activeCategory === "all" ? features : features.filter((feature) => feature.categories.includes(activeCategory))
+    activeCategory === 'all'
+      ? features
+      : features.filter((feature) => feature.categories.includes(activeCategory));
 
-  const selectedFeature = features.find((f) => f.id === activeFeature) || features[0]
+  const selectedFeature = features.find((f) => f.id === activeFeature) || features[0];
 
   // Render the appropriate chart based on the chart type
   const renderChart = (chartType: string, data: number[], labels: string[]) => {
     switch (chartType) {
-      case "bar":
-        return <BarChart data={data} labels={labels} />
-      case "line":
-        return <LineChart data={data} labels={labels} />
-      case "pie":
-        return <PieChart data={data} labels={labels} />
-      case "radar":
-        return <RadarChart data={data} labels={labels} />
+      case 'bar':
+        return <BarChart data={data} labels={labels} />;
+      case 'line':
+        return <LineChart data={data} labels={labels} />;
+      case 'pie':
+        return <PieChart data={data} labels={labels} />;
+      case 'radar':
+        return <RadarChart data={data} labels={labels} />;
       default:
-        return <BarChart data={data} labels={labels} />
+        return <BarChart data={data} labels={labels} />;
     }
-  }
+  };
 
   return (
     <div className="mt-12 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
@@ -381,8 +389,8 @@ export function FeatureShowcase() {
                   key={feature.id}
                   variant="ghost"
                   className={cn(
-                    "mb-1 flex w-full justify-start gap-3 px-3 py-3 text-left",
-                    activeFeature === feature.id && "bg-secondary",
+                    'mb-1 flex w-full justify-start gap-3 px-3 py-3 text-left',
+                    activeFeature === feature.id && 'bg-secondary'
                   )}
                   onClick={() => setActiveFeature(feature.id)}
                 >
@@ -408,10 +416,16 @@ export function FeatureShowcase() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold">{selectedFeature.content.title}</h3>
-                <p className="text-sm text-muted-foreground">{selectedFeature.content.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedFeature.content.description}
+                </p>
               </div>
               <div className="ml-auto flex">
-                <Button variant="ghost" size="icon" className="rounded-r-none border-r border-border">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-r-none border-r border-border"
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="icon" className="rounded-l-none">
@@ -433,7 +447,7 @@ export function FeatureShowcase() {
               {renderChart(
                 selectedFeature.content.chart.type,
                 selectedFeature.content.chart.data,
-                selectedFeature.content.chart.labels,
+                selectedFeature.content.chart.labels
               )}
             </div>
 
@@ -447,5 +461,5 @@ export function FeatureShowcase() {
         </div>
       </Tabs>
     </div>
-  )
+  );
 }

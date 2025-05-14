@@ -1,7 +1,8 @@
 # Architecture Sub Document Templates
 
 ## Master Architecture Template
-```Markdown
+
+````Markdown
 # {Project Name} Architecture Document
 
 ## Technical Summary
@@ -14,7 +15,7 @@
 
 ```mermaid
 {Insert high-level system context or interaction diagram here - e.g., using Mermaid graph TD or C4 Model Context Diagram}
-```
+````
 
 ## Component View
 
@@ -72,7 +73,7 @@
 | Initial draft | YYYY-MM-DD | 0.1     | Initial draft based on brief | {Agent/Person} |
 | ...           | ...        | ...     | ...                          | ...            |
 
-```
+````
 ## Coding Standards Template
 
 ```Markdown
@@ -132,11 +133,11 @@
 | ------------- | ---------- | ------- | ------------- | -------------- |
 | Initial draft | YYYY-MM-DD | 0.1     | Initial draft | {Agent/Person} |
 | ...           | ...        | ...     | ...           | ...            |
-```
+````
 
 ## Data Models Template
 
-```Markdown
+````Markdown
 # {Project Name} Data Models
 
 ## 2. Core Application Entities / Domain Objects
@@ -155,8 +156,10 @@
     optionalProperty?: number; // {Description}
     // ... other properties
   }
-  ```
-  _(Alternatively, use JSON Schema, class definitions, or other relevant format)_
+````
+
+_(Alternatively, use JSON Schema, class definitions, or other relevant format)_
+
 - **Validation Rules:** {List any specific validation rules beyond basic types - e.g., max length, format, range.}
 
 ### {Another Entity Name}
@@ -238,7 +241,8 @@
 | ------------- | ---------- | ------- | ------------- | -------------- |
 | Initial draft | YYYY-MM-DD | 0.1     | Initial draft | {Agent/Person} |
 | ...           | ...        | ...     | ...           | ...            |
-```
+
+````
 
 ## Environment Vars Templates
 
@@ -280,11 +284,11 @@
 | Initial draft | YYYY-MM-DD | 0.1     | Initial draft | {Agent/Person} |
 | ...           | ...        | ...     | ...           | ...            |
 
-```
+````
 
 ## Project Structure Template Example
 
-```Markdown
+````Markdown
 # {Project Name} Project Structure
 
 {Provide an ASCII or Mermaid diagram representing the project's folder structure such as the following example.}
@@ -328,7 +332,7 @@
 ├── tsconfig.json               # TypeScript configuration (if applicable)
 ├── Dockerfile                  # Docker build instructions (if applicable)
 └── README.md                   # Project overview and setup instructions
-```
+````
 
 (Adjust the example tree based on the actual project type - e.g., Python would have requirements.txt, etc.)
 
@@ -355,7 +359,8 @@ scripts/: Helper scripts for build, deployment, database migrations, etc.
 | ------------- | ---------- | ------- | ------------- | -------------- |
 | Initial draft | YYYY-MM-DD | 0.1     | Initial draft | {Agent/Person} |
 | ...           | ...        | ...     | ...           | ...            |
-```
+
+````
 
 ## Tech Stack Template
 
@@ -394,7 +399,7 @@ scripts/: Helper scripts for build, deployment, database migrations, etc.
 | Initial draft | YYYY-MM-DD | 0.1     | Initial draft | {Agent/Person} |
 | ...           | ...        | ...     | ...           |
 
-```
+````
 
 ## Testing Strategy Template
 

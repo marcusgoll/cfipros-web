@@ -174,15 +174,15 @@ This document defines the user experience (UX) goals, information architecture (
 ## Branding & Style Guide Reference
 
 - **Color Palette:**
-| Token        | Hex                      | Usage                     |
-| ------------ | ------------------------ | ------------------------- |
-| `primary`    | `#F47C20`                | Buttons, highlighted text |
-| `secondary`  | `#2A78B8`                | Minor accents, links      |
-| `background` | `#1C1C24`                | Body BG                   |
-| `card`       | `#26262F`                | Feature card BG           |
-| `text`       | `#FFFFFF`                | Headings & body           |
-| `muted`      | `#A1A1AA`                | Secondary text            |
-| `border`     | `rgba(255,255,255,0.08)` | Hairline dividers         |
+  | Token | Hex | Usage |
+  | ------------ | ------------------------ | ------------------------- |
+  | `primary` | `#F47C20` | Buttons, highlighted text |
+  | `secondary` | `#2A78B8` | Minor accents, links |
+  | `background` | `#1C1C24` | Body BG |
+  | `card` | `#26262F` | Feature card BG |
+  | `text` | `#FFFFFF` | Headings & body |
+  | `muted` | `#A1A1AA` | Secondary text |
+  | `border` | `rgba(255,255,255,0.08)` | Hairline dividers |
   - Feedback Colors: Green for success, Red for error, Yellow for warning, Blue for info.
   - _Specific hex codes are illustrative and need refinement by a designer._
 - **Typography:**

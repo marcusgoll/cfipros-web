@@ -46,19 +46,19 @@ resetUser();
 
 We use a consistent event naming convention to make analysis easier. All standard events are defined in the `EVENTS` object:
 
-| Event Name | Description | Key Properties |
-|------------|-------------|----------------|
-| `signup_started` | User begins signup | `{ method: 'email' \| 'google' \| 'github' }` |
-| `signup_completed` | User completes initial signup | `{ method: 'email' \| 'google' \| 'github' }` |
-| `email_verification_sent` | Verification email sent | `{ email: string }` |
-| `email_verified` | Email verified | `{ email: string }` |
-| `role_selected` | User selects role | `{ role: 'student' \| 'cfi' \| 'school_admin' }` |
-| `profile_completed` | User completes profile | `{ role: string }` |
-| `login` | User logs in | `{ method: string }` |
-| `logout` | User logs out | `{}` |
-| `subscription_page_viewed` | Subscription page viewed | `{ role: string }` |
-| `subscription_started` | User begins subscription process | `{ plan: string, role: string }` |
-| `subscription_completed` | Subscription completed | `{ plan: string, role: string }` |
+| Event Name                 | Description                      | Key Properties                                   |
+| -------------------------- | -------------------------------- | ------------------------------------------------ |
+| `signup_started`           | User begins signup               | `{ method: 'email' \| 'google' \| 'github' }`    |
+| `signup_completed`         | User completes initial signup    | `{ method: 'email' \| 'google' \| 'github' }`    |
+| `email_verification_sent`  | Verification email sent          | `{ email: string }`                              |
+| `email_verified`           | Email verified                   | `{ email: string }`                              |
+| `role_selected`            | User selects role                | `{ role: 'student' \| 'cfi' \| 'school_admin' }` |
+| `profile_completed`        | User completes profile           | `{ role: string }`                               |
+| `login`                    | User logs in                     | `{ method: string }`                             |
+| `logout`                   | User logs out                    | `{}`                                             |
+| `subscription_page_viewed` | Subscription page viewed         | `{ role: string }`                               |
+| `subscription_started`     | User begins subscription process | `{ plan: string, role: string }`                 |
+| `subscription_completed`   | Subscription completed           | `{ plan: string, role: string }`                 |
 
 ## Feature Flag Control
 
@@ -80,4 +80,4 @@ The following environment variables are required:
 - Only track necessary user actions and properties
 - Respect user privacy settings
 - Don't track personal or sensitive information
-- Consider data retention policies 
+- Consider data retention policies

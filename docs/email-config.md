@@ -8,6 +8,7 @@ This document outlines the email configuration setup for the CFIPros application
 ## Supabase Auth Email Configuration
 
 Supabase Auth handles all authentication-related emails including:
+
 - Email verification
 - Password reset
 - Email address changes
@@ -26,6 +27,7 @@ It's recommended to customize the default email templates in the Supabase Dashbo
 ## Resend Configuration
 
 Resend is used for all non-authentication emails like:
+
 - Welcome emails
 - Notification emails
 - Invitation emails to join organizations
@@ -64,4 +66,4 @@ sendTestEmail('your-email@example.com');
 1. Never hardcode API keys in your codebase
 2. Store all email configuration in environment variables
 3. Use Resend's API key with the minimum required permissions
-4. Ensure proper error handling for email sending failures 
+4. Ensure proper error handling for email sending failures

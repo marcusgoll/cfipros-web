@@ -141,20 +141,31 @@ const createSchoolsTableSQL = `
 async function createDatabaseSchema() {
   // 1. Ensure execute_sql function exists
   console.log('Ensuring execute_sql function in Supabase...');
-  const { error: executeFuncError } = await supabase.rpc('sql', { sql: createExecuteSQLFunctionSQL });
+  const { error: executeFuncError } = await supabase.rpc('sql', {
+    sql: createExecuteSQLFunctionSQL,
+  });
   if (executeFuncError) {
     console.warn('Warning during execute_sql function creation/ensure:', executeFuncError.message);
-    console.warn('If this script fails, please ensure the execute_sql function is manually created in your Supabase SQL Editor as per script comments.');
+    console.warn(
+      'If this script fails, please ensure the execute_sql function is manually created in your Supabase SQL Editor as per script comments.'
+    );
   } else {
     console.log('execute_sql function ensured.');
   }
 
   // 2. Ensure drop_all_user_tables_in_public_schema function exists
   console.log('Ensuring drop_all_user_tables_in_public_schema function...');
-  const { error: createDropFuncError } = await supabase.rpc('execute_sql', { sql_statement: createDropAllUserTablesFunctionSQL });
+  const { error: createDropFuncError } = await supabase.rpc('execute_sql', {
+    sql_statement: createDropAllUserTablesFunctionSQL,
+  });
   if (createDropFuncError) {
-    console.error('FATAL: Error creating drop_all_user_tables_in_public_schema function:', createDropFuncError);
-    console.error('Please check the SQL definition or Supabase logs. Cannot proceed with automated table dropping.');
+    console.error(
+      'FATAL: Error creating drop_all_user_tables_in_public_schema function:',
+      createDropFuncError
+    );
+    console.error(
+      'Please check the SQL definition or Supabase logs. Cannot proceed with automated table dropping.'
+    );
     return; // Stop if we can't create the dropper function
   }
   console.log('drop_all_user_tables_in_public_schema function ensured.');
@@ -172,12 +183,21 @@ async function createDatabaseSchema() {
 
   // 4. Drop ENUM types (with CASCADE, in case they were in use by dropped tables)
   console.log('Dropping ENUM types if they exist...');
-  const { error: dropPart61EnumErr } = await supabase.rpc('execute_sql', { sql_statement: dropPart61Or141TypeEnumSQL });
-  if (dropPart61EnumErr) console.warn('Warning dropping part_61_or_141_type_enum (may not exist):', dropPart61EnumErr.message);
+  const { error: dropPart61EnumErr } = await supabase.rpc('execute_sql', {
+    sql_statement: dropPart61Or141TypeEnumSQL,
+  });
+  if (dropPart61EnumErr)
+    console.warn(
+      'Warning dropping part_61_or_141_type_enum (may not exist):',
+      dropPart61EnumErr.message
+    );
   else console.log('part_61_or_141_type_enum dropped or did not exist.');
 
-  const { error: dropUserRoleErr } = await supabase.rpc('execute_sql', { sql_statement: dropUserRoleEnumSQL });
-  if (dropUserRoleErr) console.warn('Warning dropping user_role_enum (may not exist):', dropUserRoleErr.message);
+  const { error: dropUserRoleErr } = await supabase.rpc('execute_sql', {
+    sql_statement: dropUserRoleEnumSQL,
+  });
+  if (dropUserRoleErr)
+    console.warn('Warning dropping user_role_enum (may not exist):', dropUserRoleErr.message);
   else console.log('user_role_enum dropped or did not exist.');
 
   // 5. Create ENUM types
@@ -191,7 +211,9 @@ async function createDatabaseSchema() {
 
   // 6. Create Profiles Table
   console.log('Creating profiles table...');
-  const { error: profilesError } = await supabase.rpc('execute_sql', { sql_statement: createProfilesTableSQL });
+  const { error: profilesError } = await supabase.rpc('execute_sql', {
+    sql_statement: createProfilesTableSQL,
+  });
   if (profilesError) {
     console.error('Error creating profiles table:', profilesError);
     return; // Stop if profiles table can't be created
@@ -200,7 +222,9 @@ async function createDatabaseSchema() {
 
   // 7. Create Schools Table
   console.log('Creating schools table...');
-  const { error: schoolsError } = await supabase.rpc('execute_sql', { sql_statement: createSchoolsTableSQL });
+  const { error: schoolsError } = await supabase.rpc('execute_sql', {
+    sql_statement: createSchoolsTableSQL,
+  });
   if (schoolsError) {
     console.error('Error creating schools table:', schoolsError);
     return; // Stop if schools table can't be created
@@ -223,4 +247,4 @@ createDatabaseSchema().then(() => console.log('create-tables.ts script finished.
 //    $$ LANGUAGE plpgsql SECURITY DEFINER;
 // 3. Then, you can run this script using ts-node:
 //    npx ts-node scripts/create-tables.ts
-//    This script will now attempt to drop all user tables in the public schema before creating new ones. 
+//    This script will now attempt to drop all user tables in the public schema before creating new ones.

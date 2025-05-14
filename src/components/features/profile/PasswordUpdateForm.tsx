@@ -99,11 +99,10 @@ export default function PasswordUpdateForm({ user }: PasswordUpdateFormProps) {
     return (
       <Alert className="bg-blue-50 dark:bg-blue-900/20">
         <InfoIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        <AlertTitle className="text-blue-800 dark:text-blue-400">
-          OAuth Account
-        </AlertTitle>
+        <AlertTitle className="text-blue-800 dark:text-blue-400">OAuth Account</AlertTitle>
         <AlertDescription className="text-blue-700 dark:text-blue-300">
-          You signed in with a third-party provider. Password management is handled by your provider.
+          You signed in with a third-party provider. Password management is handled by your
+          provider.
         </AlertDescription>
       </Alert>
     );
@@ -176,4 +175,4 @@ export default function PasswordUpdateForm({ user }: PasswordUpdateFormProps) {
       </Form>
     </div>
   );
-} 
+}

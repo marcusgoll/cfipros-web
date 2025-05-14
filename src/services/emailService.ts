@@ -6,7 +6,7 @@ import type { EmailData } from '@/lib/resend';
 /**
  * Higher-level email service that provides specialized email functions
  * for different types of communications beyond auth flows.
- * 
+ *
  * Auth-related emails (signup, verification, password reset) are handled
  * by Supabase Auth directly and not through this service.
  */
@@ -42,10 +42,10 @@ interface InvitationEmailData {
  */
 export async function sendWelcomeEmail(data: WelcomeEmailData) {
   const { to, name, role } = data;
-  
+
   let subject = '';
   let htmlContent = '';
-  
+
   // Customize the subject and content based on user role
   switch (role) {
     case 'student':
@@ -94,13 +94,13 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
       `;
       break;
   }
-  
+
   const emailData: EmailData = {
     to,
     subject,
     htmlContent,
   };
-  
+
   return sendEmail(emailData);
 }
 
@@ -110,7 +110,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
  */
 export async function sendNotificationEmail(data: NotificationEmailData) {
   const { to, subject, message, actionUrl, actionText } = data;
-  
+
   let actionButton = '';
   if (actionUrl && actionText) {
     actionButton = `
@@ -119,7 +119,7 @@ export async function sendNotificationEmail(data: NotificationEmailData) {
       </div>
     `;
   }
-  
+
   const htmlContent = `
     <div>
       <h1>${subject}</h1>
@@ -127,13 +127,13 @@ export async function sendNotificationEmail(data: NotificationEmailData) {
       ${actionButton}
     </div>
   `;
-  
+
   const emailData: EmailData = {
     to,
     subject,
     htmlContent,
   };
-  
+
   return sendEmail(emailData);
 }
 
@@ -143,7 +143,7 @@ export async function sendNotificationEmail(data: NotificationEmailData) {
  */
 export async function sendInvitationEmail(data: InvitationEmailData) {
   const { to, inviterName, organizationName, role, inviteUrl } = data;
-  
+
   let roleTitle = '';
   switch (role) {
     case 'student':
@@ -156,9 +156,9 @@ export async function sendInvitationEmail(data: InvitationEmailData) {
       roleTitle = 'instructor';
       break;
   }
-  
+
   const subject = `You've been invited to join ${organizationName} on CFIPros`;
-  
+
   const htmlContent = `
     <div>
       <h1>You've Been Invited!</h1>
@@ -169,13 +169,13 @@ export async function sendInvitationEmail(data: InvitationEmailData) {
       <p>If you're not expecting this invitation, you can safely ignore this email.</p>
     </div>
   `;
-  
+
   const emailData: EmailData = {
     to,
     subject,
     htmlContent,
   };
-  
+
   return sendEmail(emailData);
 }
 
@@ -192,12 +192,12 @@ export async function sendTestEmail(to: string) {
       <p>If you received this email, your Resend integration is functioning properly!</p>
     </div>
   `;
-  
+
   const emailData: EmailData = {
     to,
     subject,
     htmlContent,
   };
-  
+
   return sendEmail(emailData);
-} 
+}

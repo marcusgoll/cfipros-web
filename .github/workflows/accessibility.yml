@@ -10,33 +10,33 @@ jobs:
   accessibility:
     name: Check Accessibility
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-      
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build project
-      run: npm run build
-      
-    - name: Start server for accessibility testing
-      run: npm run start & sleep 10
-      
-    - name: Install Axe CLI
-      run: npm install -g @axe-core/cli
-      
-    - name: Run accessibility tests
-      run: axe http://localhost:3000 --exit --tags wcag2a,wcag2aa
-      
-    - name: Stop server
-      if: always()
-      run: |
-        pkill -f "npm run start" || true 
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Start server for accessibility testing
+        run: npm run start & sleep 10
+
+      - name: Install Axe CLI
+        run: npm install -g @axe-core/cli
+
+      - name: Run accessibility tests
+        run: axe http://localhost:3000 --exit --tags wcag2a,wcag2aa
+
+      - name: Stop server
+        if: always()
+        run: |
+          pkill -f "npm run start" || true

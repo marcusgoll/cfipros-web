@@ -78,7 +78,9 @@ const setupSchoolsRLSSQL = `
 
 async function setupRLSPolicies() {
   console.log('Setting up RLS for profiles table...');
-  const { error: profilesRlsError } = await supabase.rpc('execute_sql', { sql_statement: setupProfilesRLSSQL });
+  const { error: profilesRlsError } = await supabase.rpc('execute_sql', {
+    sql_statement: setupProfilesRLSSQL,
+  });
   if (profilesRlsError) {
     console.error('Error setting up RLS for profiles:', profilesRlsError);
     return;
@@ -86,7 +88,9 @@ async function setupRLSPolicies() {
   console.log('RLS for profiles table set up successfully.');
 
   console.log('Setting up RLS for schools table...');
-  const { error: schoolsRlsError } = await supabase.rpc('execute_sql', { sql_statement: setupSchoolsRLSSQL });
+  const { error: schoolsRlsError } = await supabase.rpc('execute_sql', {
+    sql_statement: setupSchoolsRLSSQL,
+  });
   if (schoolsRlsError) {
     console.error('Error setting up RLS for schools:', schoolsRlsError);
     return;
@@ -101,4 +105,4 @@ setupRLSPolicies().then(() => console.log('RLS setup script finished.'));
 // 2. Ensure your .env.local (or equivalent) has NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
 // 3. Ensure the execute_sql function is present in your Supabase (created by create-tables.ts or manually).
 // 4. Then, you can run this script using ts-node:
-//    npx ts-node scripts/setup-rls.ts 
+//    npx ts-node scripts/setup-rls.ts

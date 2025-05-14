@@ -9,11 +9,13 @@ Thank you for contributing to CFIPros! Please provide the following information 
 ## 🔗 Related Issue(s)
 
 <!-- Link any related issues here, e.g., Closes #123, Fixes #456 -->
+
 - Closes #issue_number
 
 ## ✨ Type of Change
 
 <!-- Please delete options that are not relevant. -->
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -29,10 +31,12 @@ Thank you for contributing to CFIPros! Please provide the following information 
 <!-- Please check all items that apply to your PR according to our Definition of Done (docs/definition-of-done.md) -->
 
 ### Requirements & Acceptance Criteria
+
 - [ ] All acceptance criteria for the related story/issue have been met and verified
 - [ ] Edge cases and error conditions have been considered and addressed
 
 ### Design & Implementation
+
 - [ ] Code follows project architecture guidelines (see `docs/architecture.md`)
 - [ ] Implementation uses approved technologies as per `docs/tech-stack.md`
 - [ ] Code adheres to style guidelines (see `docs/coding-standards.md`)
@@ -43,6 +47,7 @@ Thank you for contributing to CFIPros! Please provide the following information 
 - [ ] API and data model implementations follow documentation (see `docs/api-reference.md` and `docs/data-models.md`)
 
 ### Testing & Verification
+
 - [ ] Unit tests cover new/modified code (meeting coverage targets)
 - [ ] All tests pass locally
 - [ ] Integration tests verify interactions with other components (if applicable)
@@ -50,6 +55,7 @@ Thank you for contributing to CFIPros! Please provide the following information 
 - [ ] Manual verification completed (if applicable)
 
 ### Documentation & Handover
+
 - [ ] Code includes appropriate comments, especially for complex logic
 - [ ] Related documentation has been updated (if necessary)
 - [ ] Knowledge transfer completed (if introducing new patterns/technologies)
@@ -77,4 +83,4 @@ Thank you for contributing to CFIPros! Please provide the following information 
 
 ## Additional Notes
 
-<!-- Any other information that is important to this PR (e.g., potential risks, deployment considerations). --> 
+<!-- Any other information that is important to this PR (e.g., potential risks, deployment considerations). -->

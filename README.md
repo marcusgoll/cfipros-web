@@ -7,6 +7,7 @@ CFIPros is a modern web application designed to be a centralized hub for Certifi
 The initial Minimum Viable Product (MVP) focuses on delivering a high-accuracy FAA Knowledge Test Extraction Tool. This tool converts PDF/image test results into structured data, matches them with Airman Certification Standards (ACS) codes, and generates insightful reports. The platform also includes essential user account management, basic student management capabilities for subscribers, a tiered analytics system, and an initial API for the future Model Context Protocol (MCP).
 
 **Key Goals:**
+
 - Address fragmented data management in flight training.
 - Provide reliable FAA Knowledge Test analysis.
 - Establish an expandable platform for CFIs, schools, and students.
@@ -68,6 +69,7 @@ Follow these instructions to set up the project for local development.
     # STRIPE_SECRET_KEY=...
     # RESEND_API_KEY=...
     ```
+
     **Important:** Never commit your `.env.local` file to version control.
 
 ### Installation
@@ -81,22 +83,23 @@ Follow these instructions to set up the project for local development.
     ```bash
     npm install
     ```
-    *(Or `yarn install` or `pnpm install` if you prefer a different package manager)*
+    _(Or `yarn install` or `pnpm install` if you prefer a different package manager)_
 
 ### Database Setup (Supabase)
 
 1.  **Schema Migrations:**
     Apply the database schema using Supabase CLI migrations. For detailed instructions on our migration strategy, see [docs/migrations.md](docs/migrations.md).
+
     ```bash
     # Install Supabase CLI if you haven't already
     npm install -g supabase
-    
+
     # Login to Supabase
     supabase login
-    
+
     # Link to your project
     supabase link --project-ref your-project-ref
-    
+
     # Apply migrations
     supabase db push
     ```
@@ -129,7 +132,9 @@ To run Jest tests:
 ```bash
 npm test
 ```
+
 Or, to run in watch mode:
+
 ```bash
 npm run test:watch
 ```
@@ -145,13 +150,13 @@ To run Playwright E2E tests:
     ```bash
     npm run test:e2e
     ```
-    *(This might be `npx playwright test` depending on package.json scripts)*
+    _(This might be `npx playwright test` depending on package.json scripts)_
 
 Test files are located in `tests/e2e/`.
 
 ## 📖 Basic Usage Examples
 
-*(This section can be expanded as features are developed. For MVP, it might focus on the FAA Knowledge Test upload process.)*
+_(This section can be expanded as features are developed. For MVP, it might focus on the FAA Knowledge Test upload process.)_
 
 1.  **Sign up / Log in:** Access the platform through the respective authentication flows.
 2.  **Upload FAA Knowledge Test:** Navigate to the "Knowledge Tests" section and use the upload tool.
@@ -162,14 +167,14 @@ Test files are located in `tests/e2e/`.
 
 We welcome contributions to CFIPros! If you're interested in helping, please review our contribution guidelines:
 
--   **[CONTRIBUTING.md](CONTRIBUTING.md)**: Detailed information on our Git branching strategy, commit message conventions, PR process, code style, and review process.
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Detailed information on our Git branching strategy, commit message conventions, PR process, code style, and review process.
 
 **Quick Summary:**
 
--   **Branching:** Features are developed in `feature/<name>` branches off `develop`.
--   **Commits:** Follow [Conventional Commits](https://www.conventionalcommits.org/).
--   **Pull Requests:** Submit PRs to `develop`, use the PR template, and ensure tests pass.
+- **Branching:** Features are developed in `feature/<name>` branches off `develop`.
+- **Commits:** Follow [Conventional Commits](https://www.conventionalcommits.org/).
+- **Pull Requests:** Submit PRs to `develop`, use the PR template, and ensure tests pass.
 
 ---
 
-*This README is a living document and will be updated as the project evolves.*
+_This README is a living document and will be updated as the project evolves._

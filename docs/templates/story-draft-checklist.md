@@ -15,12 +15,12 @@ The Scrum Master should use this checklist to validate that each story contains 
 - [ ] Detailed requirements are copied from the epic and are unambiguous.
 - [ ] Acceptance Criteria (ACs) are copied from the epic.
 - [ ] **ACs are INVEST:**
-    - [ ] Independent
-    - [ ] Negotiable
-    - [ ] Valuable
-    - [ ] Estimable
-    - [ ] Small
-    - [ ] Testable (clear pass/fail conditions)
+  - [ ] Independent
+  - [ ] Negotiable
+  - [ ] Valuable
+  - [ ] Estimable
+  - [ ] Small
+  - [ ] Testable (clear pass/fail conditions)
 - [ ] Potential edge cases and error scenarios considered.
 
 ## 3. TECHNICAL IMPLEMENTATION GUIDANCE
@@ -57,31 +57,31 @@ The Scrum Master should use this checklist to validate that each story contains 
 
 - [ ] **Story Structure for DoD:** The story template is populated in a way that prompts the developer agent to address all relevant DoD criteria.
 - [ ] **Requirements & ACs (DoD 3.1):**
-    - [ ] Story requirements and ACs are clear and complete.
-    - [ ] ACs are framed to be testable and meet quality standards.
+  - [ ] Story requirements and ACs are clear and complete.
+  - [ ] ACs are framed to be testable and meet quality standards.
 - [ ] **Design & Implementation Guidance (DoD 3.2):**
-    - [ ] Sufficient guidance is provided for adhering to architecture, tech stack, and coding standards.
-    - [ ] Prompts for consideration of security, configuration, and data models.
+  - [ ] Sufficient guidance is provided for adhering to architecture, tech stack, and coding standards.
+  - [ ] Prompts for consideration of security, configuration, and data models.
 - [ ] **Testing & Verification Guidance (DoD 3.3):**
-    - [ ] Story prompts for comprehensive unit and integration tests (where applicable).
-    - [ ] Guidance for manual tests (if needed) is clear.
-    - [ ] Explicitly mentions need for AC verification.
+  - [ ] Story prompts for comprehensive unit and integration tests (where applicable).
+  - [ ] Guidance for manual tests (if needed) is clear.
+  - [ ] Explicitly mentions need for AC verification.
 - [ ] **Documentation & Handover Prompts (DoD 3.4):**
-    - [ ] Story includes reminders/sections for inline comments and updating story/project documentation.
+  - [ ] Story includes reminders/sections for inline comments and updating story/project documentation.
 - [ ] **Automated Verification (DoD 4):**
-    - [ ] Story encourages or specifies areas for automated verification.
+  - [ ] Story encourages or specifies areas for automated verification.
 
 ## VALIDATION RESULT
 
-| Category                             | Status            | Issues (Reference DoD section if applicable) |
-| ------------------------------------ | ----------------- | -------------------------------------------- |
-| 1. Goal & Context Clarity            | PASS/FAIL/PARTIAL |                                              |
-| 2. Requirements & Acceptance Criteria| PASS/FAIL/PARTIAL |                                              |
-| 3. Technical Implementation Guidance | PASS/FAIL/PARTIAL |                                              |
-| 4. Reference Effectiveness           | PASS/FAIL/PARTIAL |                                              |
-| 5. Self-Containment Assessment       | PASS/FAIL/PARTIAL |                                              |
-| 6. Testing Guidance                  | PASS/FAIL/PARTIAL |                                              |
-| 7. DoD Compliance                    | PASS/FAIL/PARTIAL |                                              |
+| Category                              | Status            | Issues (Reference DoD section if applicable) |
+| ------------------------------------- | ----------------- | -------------------------------------------- |
+| 1. Goal & Context Clarity             | PASS/FAIL/PARTIAL |                                              |
+| 2. Requirements & Acceptance Criteria | PASS/FAIL/PARTIAL |                                              |
+| 3. Technical Implementation Guidance  | PASS/FAIL/PARTIAL |                                              |
+| 4. Reference Effectiveness            | PASS/FAIL/PARTIAL |                                              |
+| 5. Self-Containment Assessment        | PASS/FAIL/PARTIAL |                                              |
+| 6. Testing Guidance                   | PASS/FAIL/PARTIAL |                                              |
+| 7. DoD Compliance                     | PASS/FAIL/PARTIAL |                                              |
 
 **Final Assessment:**
 

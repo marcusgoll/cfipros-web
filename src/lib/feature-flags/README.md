@@ -15,25 +15,14 @@ import { FeatureFlagComponent } from '@/components/features/auth/FeatureFlagComp
 // Option 1: Use the hook
 function MyComponent() {
   const isUnifiedSignupEnabled = useFeatureFlag('UNIFIED_SIGNUP_FLOW');
-  
-  return (
-    <div>
-      {isUnifiedSignupEnabled ? (
-        <UnifiedSignupForm />
-      ) : (
-        <LegacySignupForm />
-      )}
-    </div>
-  );
+
+  return <div>{isUnifiedSignupEnabled ? <UnifiedSignupForm /> : <LegacySignupForm />}</div>;
 }
 
 // Option 2: Use the component wrapper
 function MyComponent() {
   return (
-    <FeatureFlagComponent 
-      flag="UNIFIED_SIGNUP_FLOW"
-      fallback={<LegacySignupForm />}
-    >
+    <FeatureFlagComponent flag="UNIFIED_SIGNUP_FLOW" fallback={<LegacySignupForm />}>
       <UnifiedSignupForm />
     </FeatureFlagComponent>
   );
@@ -48,25 +37,14 @@ import { getFeatureFlag, ServerFeatureFlag } from '@/lib/feature-flags/server';
 // Option 1: Use the async function
 async function MyServerComponent() {
   const isUnifiedSignupEnabled = await getFeatureFlag('UNIFIED_SIGNUP_FLOW');
-  
-  return (
-    <div>
-      {isUnifiedSignupEnabled ? (
-        <UnifiedSignupForm />
-      ) : (
-        <LegacySignupForm />
-      )}
-    </div>
-  );
+
+  return <div>{isUnifiedSignupEnabled ? <UnifiedSignupForm /> : <LegacySignupForm />}</div>;
 }
 
 // Option 2: Use the component wrapper
 async function MyServerComponent() {
   return (
-    <ServerFeatureFlag 
-      flag="UNIFIED_SIGNUP_FLOW"
-      fallback={<LegacySignupForm />}
-    >
+    <ServerFeatureFlag flag="UNIFIED_SIGNUP_FLOW" fallback={<LegacySignupForm />}>
       <UnifiedSignupForm />
     </ServerFeatureFlag>
   );
@@ -83,13 +61,13 @@ Feature flags can be configured in several ways:
 
 ## Available Flags
 
-| Flag Name | Description | Default |
-|-----------|-------------|---------|
+| Flag Name             | Description                               | Default |
+| --------------------- | ----------------------------------------- | ------- |
 | `UNIFIED_SIGNUP_FLOW` | Controls unified vs. role-specific signup | `false` |
-| `ANALYTICS_ENABLED` | Controls analytics tracking | `false` |
+| `ANALYTICS_ENABLED`   | Controls analytics tracking               | `false` |
 
 ## Adding New Flags
 
 1. Add the flag to the `FEATURE_FLAGS` object in `index.ts`
 2. Use the flag in your components
-3. Update this documentation 
+3. Update this documentation

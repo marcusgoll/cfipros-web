@@ -12,16 +12,16 @@ interface FeatureFlagComponentProps {
 /**
  * React component that conditionally renders based on a feature flag
  */
-export function FeatureFlagComponent({ 
-  flag, 
-  children, 
-  fallback = null 
+export function FeatureFlagComponent({
+  flag,
+  children,
+  fallback = null,
 }: FeatureFlagComponentProps) {
   const isEnabled = useFeatureFlag(flag);
-  
+
   if (isEnabled) {
     return <>{children}</>;
   }
-  
+
   return <>{fallback}</>;
-} 
+}

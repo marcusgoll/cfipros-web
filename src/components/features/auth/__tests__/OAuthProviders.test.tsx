@@ -9,7 +9,7 @@ jest.mock('@/lib/supabase/client', () => ({
 
 describe('OAuthProviders Component', () => {
   const mockSignInWithOAuth = jest.fn();
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
     (createSupabaseBrowserClient as jest.Mock).mockReturnValue({
@@ -41,13 +41,13 @@ describe('OAuthProviders Component', () => {
   it('calls signInWithOAuth when Google button is clicked', async () => {
     mockSignInWithOAuth.mockResolvedValue({ error: null });
     render(<OAuthProviders />);
-    
+
     const button = screen.getByRole('button', { name: /Sign up with Google/i });
-    
+
     await act(async () => {
       fireEvent.click(button);
     });
-    
+
     expect(mockSignInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
       options: {
@@ -57,20 +57,20 @@ describe('OAuthProviders Component', () => {
   });
 
   it('shows error message when OAuth sign-in fails', async () => {
-    mockSignInWithOAuth.mockResolvedValue({ 
-      error: { message: 'Auth error' } 
+    mockSignInWithOAuth.mockResolvedValue({
+      error: { message: 'Auth error' },
     });
-    
+
     render(<OAuthProviders />);
-    
+
     const button = screen.getByRole('button', { name: /Sign up with Google/i });
-    
+
     await act(async () => {
       fireEvent.click(button);
     });
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Failed to sign in with google/i)).toBeInTheDocument();
     });
   });
-}); 
+});

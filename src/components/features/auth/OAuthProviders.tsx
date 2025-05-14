@@ -57,4 +57,4 @@ export function OAuthProviders({ variant = 'signup' }: OAuthProvidersProps) {
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
-} 
+}

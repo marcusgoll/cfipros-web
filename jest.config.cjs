@@ -2,11 +2,14 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: {
-        jsx: 'react-jsx',
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          jsx: 'react-jsx',
+        },
       },
-    }],
+    ],
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -15,6 +18,6 @@ module.exports = {
   testPathIgnorePatterns: [
     '<rootDir>/tests/e2e/',
     '<rootDir>/node_modules/',
-    '<rootDir>/src/components/layout/__tests__/test-utils.tsx'
-  ]
-}; 
+    '<rootDir>/src/components/layout/__tests__/test-utils.tsx',
+  ],
+};

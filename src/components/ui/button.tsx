@@ -17,8 +17,10 @@ const buttonVariants = cva(
         secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
         link: 'text-primary underline-offset-4 hover:underline',
-        brand: 'bg-[#F47C20] text-brand-primary border border-[#F47C20] !border-[#F47C20] relative shadow-[0_4px_0_0_#A34700] hover:shadow-[0_2px_0_0_#A34700] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none font-bold transition-all',
-        'brand-outline': 'bg-transparent text-brand-light border border-[#F47C20] !border-[#F47C20] border-solid border-opacity-100 relative shadow-[0_4px_0_0_#A34700] hover:shadow-[0_2px_0_0_#A34700] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none font-bold hover:bg-[#F47C20]/5 transition-all',
+        brand:
+          'bg-[#F47C20] text-brand-primary border border-[#F47C20] !border-[#F47C20] relative shadow-[0_4px_0_0_#A34700] hover:shadow-[0_2px_0_0_#A34700] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none font-bold transition-all',
+        'brand-outline':
+          'bg-transparent text-brand-light border border-[#F47C20] !border-[#F47C20] border-solid border-opacity-100 relative shadow-[0_4px_0_0_#A34700] hover:shadow-[0_2px_0_0_#A34700] hover:translate-y-[2px] active:translate-y-[4px] active:shadow-none font-bold hover:bg-[#F47C20]/5 transition-all',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -50,7 +52,9 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      style={{ borderColor: variant === 'brand' || variant === 'brand-outline' ? '#F47C20' : undefined }}
+      style={{
+        borderColor: variant === 'brand' || variant === 'brand-outline' ? '#F47C20' : undefined,
+      }}
       {...props}
     />
   );
