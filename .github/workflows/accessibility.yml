@@ -43,7 +43,7 @@ jobs:
         run: npm install -g @axe-core/cli
 
       - name: Run accessibility tests
-        run: axe http://localhost:3000 --exit --tags wcag2a,wcag2aa
+        run: axe http://localhost:3000 --exit --tags wcag2a,wcag2aa --chrome-options='--user-data-dir=/tmp/axe-user-data-${{ github.run_id }}-${{ github.run_attempt }}'
 
       - name: Stop server
         if: always()
