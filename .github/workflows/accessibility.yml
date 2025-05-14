@@ -33,6 +33,9 @@ jobs:
           # NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
         run: npm run build
 
+      - name: Install/Update Chrome and ChromeDriver
+        run: npx browser-driver-manager install chrome
+
       - name: Start server for accessibility testing
         run: npm run start & sleep 10
 
