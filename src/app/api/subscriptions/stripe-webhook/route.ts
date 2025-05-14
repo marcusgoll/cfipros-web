@@ -7,16 +7,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 import { stripe } from '@/lib/stripe/client';
-import type { 
-  SubscriptionCreateParams 
-} from '@/lib/types/subscription';
+
+// Type imports
+import type { SubscriptionCreateParams } from '@/lib/types/subscription';
 import type { SubscriptionStatus } from '@/lib/stripe/types';
-import { 
-  createSubscription, 
-  getSubscriptionByStripeId, 
-  updateSubscription 
+
+// Value imports for services
+import {
+  createSubscription,
+  getSubscriptionByStripeId,
+  updateSubscription,
 } from '@/services/subscriptionService';
 
 /**
@@ -28,20 +30,13 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get('stripe-signature');
 
     if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-      return NextResponse.json(
-        { error: 'Missing webhook secret or signature' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing webhook secret or signature' }, { status: 400 });
     }
 
     // Verify webhook signature
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
+      event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
       const error = err as Error;
       console.error(`Webhook signature verification failed: ${error.message}`);
@@ -56,15 +51,15 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
-      
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -73,10 +68,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const error = err as Error;
     console.error(`Webhook error: ${error.message}`);
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
 
@@ -103,8 +95,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     stripe_customer_id: subscription.customer as string,
     stripe_subscription_id: subscription.id,
     status: subscription.status as SubscriptionStatus,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    current_period_start: new Date(
+      (subscription.current_period_start as number) * 1000
+    ).toISOString(),
+    current_period_end: new Date((subscription.current_period_end as number) * 1000).toISOString(),
     cancel_at_period_end: subscription.cancel_at_period_end,
   };
 
@@ -128,8 +122,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   // Update the subscription
   await updateSubscription(existingSubscription.id, {
     status: subscription.status as SubscriptionStatus,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    current_period_start: new Date(
+      (subscription.current_period_start as number) * 1000
+    ).toISOString(),
+    current_period_end: new Date((subscription.current_period_end as number) * 1000).toISOString(),
     cancel_at_period_end: subscription.cancel_at_period_end,
   });
 

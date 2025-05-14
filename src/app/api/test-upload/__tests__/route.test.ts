@@ -2,16 +2,18 @@ import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import * as fsPromises from 'node:fs/promises';
+import type { User, AuthError } from '@supabase/supabase-js';
 
 // Mock modules before importing the target file
 jest.mock('next/server', () => ({
   NextResponse: {
-    json: jest.fn((data, options) => ({ data, options })),
+    json: jest.fn((data: unknown, options?: ResponseInit) => ({ data, options })),
   },
 }));
 
 // Mock createRouteHandlerClient
-const mockAuthGetUser = jest.fn();
+const mockAuthGetUser =
+  jest.fn<() => Promise<{ data: { user: User | null }; error: AuthError | null }>>();
 const mockSupabase = { auth: { getUser: mockAuthGetUser } };
 jest.mock('@supabase/auth-helpers-nextjs', () => ({
   createRouteHandlerClient: jest.fn(() => mockSupabase),
@@ -24,8 +26,10 @@ jest.mock('next/headers', () => ({
 
 // Mock fs operations
 jest.mock('node:fs/promises', () => ({
-  mkdir: jest.fn().mockResolvedValue(undefined),
-  writeFile: jest.fn().mockResolvedValue(undefined),
+  mkdir: jest
+    .fn<typeof fsPromises.mkdir>()
+    .mockResolvedValue(undefined as unknown as string | undefined),
+  writeFile: jest.fn<typeof fsPromises.writeFile>().mockResolvedValue(undefined),
 }));
 
 // Mock UUID
@@ -39,8 +43,15 @@ jest.mock('@/lib/validators/test-upload', () => ({
 }));
 
 // Mock the OCR service
+interface MockOcrResult {
+  fileId: string;
+  status: string;
+  rawText?: string;
+  geminiModelUsed?: string;
+  ocrErrorMessage?: string;
+}
 jest.mock('@/services/gemini-ocr-service', () => ({
-  processDocumentWithRetry: jest.fn().mockResolvedValue({
+  processDocumentWithRetry: jest.fn<() => Promise<MockOcrResult>>().mockResolvedValue({
     fileId: 'test-file-uuid',
     status: 'success',
     rawText: 'Extracted test content',
