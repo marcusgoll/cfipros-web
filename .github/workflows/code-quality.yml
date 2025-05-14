@@ -44,3 +44,4 @@ jobs:
             echo "✅ All code quality checks passed!"
           else
             echo "❌ Some code quality checks failed. Please review the logs for details."
+          fi
