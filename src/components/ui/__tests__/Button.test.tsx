@@ -1,14 +1,17 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Button } from '../button';
+import Link from 'next/link';
 
 // Mock Next.js Link component
 jest.mock('next/link', () => {
-  return ({ children, href, ...rest }: React.ComponentPropsWithoutRef<'a'>) => (
+  const MockLink = ({ children, href, ...rest }: React.ComponentPropsWithoutRef<'a'>) => (
     <a href={href} {...rest}>
       {children}
     </a>
   );
+  MockLink.displayName = 'MockNextLink';
+  return MockLink;
 });
 
 describe('Button Component', () => {
@@ -75,10 +78,9 @@ describe('Button Component', () => {
   });
 
   it('should render correctly as asChild', () => {
-    const LinkMock = require('next/link');
     render(
       <Button asChild>
-        <LinkMock href="/">Link Button</LinkMock>
+        <Link href="/">Link Button</Link>
       </Button>
     );
 

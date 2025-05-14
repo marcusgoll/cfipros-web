@@ -1,12 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 import type {
-  CreateSubscriptionPayload,
   Subscription,
-  UpdateSubscriptionPayload,
+  SubscriptionCreateParams,
+  // SubscriptionStatus, // Keep this if used as a type elsewhere, remove if only for value checks
+  SubscriptionUpdateParams,
+  DbSubscriptionStatus, // Added DbSubscriptionStatus for explicit use
 } from '@/lib/types/subscription';
-import { SubscriptionStatus } from '@/lib/stripe/types';
-import type { Database } from '@/lib/types/database';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import type { Database } from '@/lib/types/database.types';
+import { createSupabaseServerClient } from '@/lib/supabase/server'; // Fixed import name
+
+// Check for environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  console.error('ERROR: NEXT_PUBLIC_SUPABASE_URL is not defined!');
+}
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('ERROR: SUPABASE_SERVICE_ROLE_KEY is not defined!');
+}
 
 // Initialize Supabase client with service role key for admin access
 let supabaseAdmin: ReturnType<typeof createClient<Database>>;
@@ -20,21 +29,59 @@ try {
   console.warn('Error initializing Supabase admin client, using mock for tests');
   // Provide a mock implementation for testing
   supabaseAdmin = {
-    from: () => ({
-      insert: () => ({
-        select: () => ({
-          single: async () => ({ data: null, error: null }),
-        }),
-      }),
-      update: () => ({
-        eq: () => ({
-          select: () => ({
-            single: async () => ({ data: null, error: null }),
-          }),
-        }),
-      }),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    from: (_: string) => ({
+      insert: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      upsert: jest.fn().mockReturnThis(),
+      rpc: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      neq: jest.fn().mockReturnThis(),
+      gt: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lt: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      like: jest.fn().mockReturnThis(),
+      ilike: jest.fn().mockReturnThis(),
+      is: jest.fn().mockReturnThis(),
+      in: jest.fn().mockReturnThis(),
+      contains: jest.fn().mockReturnThis(),
+      containedBy: jest.fn().mockReturnThis(),
+      rangeGt: jest.fn().mockReturnThis(),
+      rangeGte: jest.fn().mockReturnThis(),
+      rangeLt: jest.fn().mockReturnThis(),
+      rangeLte: jest.fn().mockReturnThis(),
+      rangeAdjacent: jest.fn().mockReturnThis(),
+      overlaps: jest.fn().mockReturnThis(),
+      textSearch: jest.fn().mockReturnThis(),
+      match: jest.fn().mockReturnThis(),
+      not: jest.fn().mockReturnThis(),
+      or: jest.fn().mockReturnThis(),
+      filter: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      range: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: null, error: null }),
+      maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+      throwOnError: jest.fn(),
     }),
-  } as unknown;
+    // Add other top-level Supabase client methods if needed for type checking
+    rpc: jest.fn(),
+    storage: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      from: (_: string) => ({
+        upload: jest.fn(),
+        download: jest.fn(),
+        // ... other bucket methods
+      }),
+    },
+    auth: {
+      // ... auth methods
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any; // Keep as any for now, but with a more structured mock
 }
 
 // Export supabaseAdmin for testing
@@ -50,7 +97,7 @@ export { supabaseAdmin };
  * Create a new subscription record in the database
  */
 export const createSubscription = async (
-  data: CreateSubscriptionPayload
+  data: SubscriptionCreateParams
 ): Promise<Subscription | null> => {
   try {
     const { data: subscription, error } = await supabaseAdmin
@@ -77,7 +124,7 @@ export const createSubscription = async (
 export async function getSubscriptionByStripeId(
   stripeSubscriptionId: string
 ): Promise<Subscription | null> {
-  const supabase = createServerSupabaseClient();
+  const supabase = createSupabaseServerClient(); // Restored
 
   const { data, error } = await supabase
     .from('subscriptions')
@@ -99,7 +146,7 @@ export async function getSubscriptionByStripeId(
  */
 export const updateSubscription = async (
   stripeSubscriptionId: string,
-  data: UpdateSubscriptionPayload
+  data: SubscriptionUpdateParams
 ): Promise<Subscription | null> => {
   try {
     const { data: subscription, error } = await supabaseAdmin
@@ -147,7 +194,7 @@ export const deleteSubscription = async (stripeSubscriptionId: string): Promise<
  * Get subscription by user ID
  */
 export async function getSubscriptionByUserId(userId: string): Promise<Subscription | null> {
-  const supabase = createServerSupabaseClient();
+  const supabase = createSupabaseServerClient(); // Restored
 
   const { data, error } = await supabase
     .from('subscriptions')
@@ -168,7 +215,7 @@ export async function getSubscriptionByUserId(userId: string): Promise<Subscript
  * Get subscription by school ID
  */
 export async function getSubscriptionBySchoolId(schoolId: string): Promise<Subscription | null> {
-  const supabase = createServerSupabaseClient();
+  const supabase = createSupabaseServerClient(); // Restored
 
   const { data, error } = await supabase
     .from('subscriptions')
@@ -193,7 +240,7 @@ export async function hasActiveUserSubscription(userId: string): Promise<boolean
 
   return (
     !!subscription &&
-    subscription.status === SubscriptionStatus.ACTIVE &&
+    subscription.status === 'ACTIVE' && // Changed to string literal
     new Date(subscription.current_period_end) > new Date()
   );
 }
@@ -206,7 +253,7 @@ export async function hasActiveSchoolSubscription(schoolId: string): Promise<boo
 
   return (
     !!subscription &&
-    subscription.status === SubscriptionStatus.ACTIVE &&
+    subscription.status === 'ACTIVE' && // Changed to string literal
     new Date(subscription.current_period_end) > new Date()
   );
 }
@@ -216,7 +263,7 @@ export async function hasActiveSchoolSubscription(schoolId: string): Promise<boo
  */
 export const handleSubscriptionStatusChange = async (
   stripeSubscriptionId: string,
-  status: SubscriptionStatus,
+  status: DbSubscriptionStatus, // Changed type to DbSubscriptionStatus
   currentPeriodStart: number,
   currentPeriodEnd: number,
   cancelAtPeriodEnd: boolean
@@ -228,8 +275,11 @@ export const handleSubscriptionStatusChange = async (
     return null;
   }
 
+  // Ensure the status passed is a valid DbSubscriptionStatus
+  const validStatus: DbSubscriptionStatus = status; // Type assertion if needed, or mapping
+
   return updateSubscription(stripeSubscriptionId, {
-    status,
+    status: validStatus,
     current_period_start: new Date(currentPeriodStart * 1000).toISOString(),
     current_period_end: new Date(currentPeriodEnd * 1000).toISOString(),
     cancel_at_period_end: cancelAtPeriodEnd,

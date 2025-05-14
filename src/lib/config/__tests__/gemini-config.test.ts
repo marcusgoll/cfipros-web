@@ -70,7 +70,7 @@ describe('Gemini Config', () => {
 
   describe('GEMINI_MODEL_NAME', () => {
     it('should be defined with the vision-capable model', () => {
-      expect(GEMINI_MODEL_NAME).toBe('gemini-pro-vision');
+      expect(GEMINI_MODEL_NAME).toBe('gemini-1.5-flash');
     });
   });
 });

@@ -4,7 +4,16 @@
  * This module defines the types used for subscription management.
  */
 
-import type { SubscriptionStatus } from '../stripe/types';
+/**
+ * Database subscription status type - based on public.subscription_status enum
+ */
+export type DbSubscriptionStatus =
+  | 'ACTIVE'
+  | 'CANCELED'
+  | 'PAST_DUE'
+  | 'INCOMPLETE'
+  | 'INCOMPLETE_EXPIRED'
+  | 'TRIALING';
 
 /**
  * Base subscription interface
@@ -18,7 +27,7 @@ export interface Subscription {
   school_id: string | null;
   stripe_customer_id: string;
   stripe_subscription_id: string;
-  status: SubscriptionStatus;
+  status: DbSubscriptionStatus;
   current_period_start: string;
   current_period_end: string;
   cancel_at_period_end: boolean;
@@ -28,11 +37,11 @@ export interface Subscription {
  * Subscription create params
  */
 export interface SubscriptionCreateParams {
-  user_id?: string;
-  school_id?: string;
+  user_id: string;
+  school_id?: string | null;
   stripe_customer_id: string;
   stripe_subscription_id: string;
-  status: SubscriptionStatus;
+  status: DbSubscriptionStatus;
   current_period_start: string;
   current_period_end: string;
   cancel_at_period_end: boolean;
@@ -42,7 +51,7 @@ export interface SubscriptionCreateParams {
  * Subscription update params
  */
 export interface SubscriptionUpdateParams {
-  status?: SubscriptionStatus;
+  status?: DbSubscriptionStatus;
   current_period_start?: string;
   current_period_end?: string;
   cancel_at_period_end?: boolean;

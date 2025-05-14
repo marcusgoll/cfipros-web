@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { type FeatureFlag, isFeatureEnabled, FEATURE_FLAGS } from './index';
+import { type FeatureFlag, isFeatureEnabled /*, FEATURE_FLAGS*/ } from './index';
 import { usePostHog } from 'posthog-js/react';
 
 /**

@@ -15,8 +15,10 @@ jest.mock('next/server', () => ({
 const mockAuthGetUser =
   jest.fn<() => Promise<{ data: { user: User | null }; error: AuthError | null }>>();
 const mockSupabase = { auth: { getUser: mockAuthGetUser } };
-jest.mock('@supabase/auth-helpers-nextjs', () => ({
-  createRouteHandlerClient: jest.fn(() => mockSupabase),
+
+// Correctly mock @supabase/ssr and its createServerClient function
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => mockSupabase),
 }));
 
 // Mock cookies
@@ -64,46 +66,65 @@ import { POST } from '../route';
 import { validateFile } from '@/lib/validators/test-upload';
 import { processDocumentWithRetry } from '@/services/gemini-ocr-service';
 
+let originalArrayBuffer: typeof File.prototype.arrayBuffer;
+
 describe('Test Upload API Route', () => {
   let mockFormData: FormData;
   let mockRequest: Partial<NextRequest>;
-  // Type definition for the arrayBuffer method
-  let originalArrayBuffer: () => Promise<ArrayBuffer>;
+  const originalEnv = process.env; // Store original env
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = { ...originalEnv }; // Restore and make a copy
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 
-    // Default auth response - authenticated user
+    originalArrayBuffer = File.prototype.arrayBuffer;
+
     mockAuthGetUser.mockResolvedValue({
-      data: { user: { id: 'test-user-id', email: 'test@example.com' } },
+      data: {
+        user: {
+          id: 'test-user-id',
+          email: 'test@example.com',
+          app_metadata: { provider: 'email', providers: ['email'] },
+          user_metadata: { name: 'Test User' },
+          aud: 'authenticated',
+          created_at: new Date().toISOString(),
+        } as User,
+      },
+      error: null,
     });
 
-    // Set up mock FormData for each test
     mockFormData = new FormData();
 
-    // Create a mock request
     mockRequest = {
-      formData: jest.fn().mockResolvedValue(mockFormData),
-    };
+      headers: new Headers(),
+      method: 'POST',
+      url: 'http://localhost/api/test-upload',
+      json: jest.fn(),
+      formData: jest.fn<() => Promise<FormData>>().mockResolvedValue(mockFormData),
+      text: jest.fn(),
+      blob: jest.fn(),
+      arrayBuffer: jest.fn(),
+    } as Partial<NextRequest>;
 
-    // Mock File.prototype.arrayBuffer
-    originalArrayBuffer = File.prototype.arrayBuffer;
-    File.prototype.arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(10));
+    File.prototype.arrayBuffer = jest
+      .fn<() => Promise<ArrayBuffer>>()
+      .mockResolvedValue(new ArrayBuffer(10));
 
-    // Spy on console.log and console.error
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    // Restore original arrayBuffer method
     File.prototype.arrayBuffer = originalArrayBuffer;
+    process.env = originalEnv; // Fully restore original env
   });
 
   it('should return 401 if user is not authenticated', async () => {
-    // Override auth for this test
     mockAuthGetUser.mockResolvedValueOnce({
       data: { user: null },
+      error: null,
     });
 
     await POST(mockRequest as NextRequest);
@@ -115,21 +136,17 @@ describe('Test Upload API Route', () => {
   });
 
   it('should handle valid file uploads and trigger OCR processing', async () => {
-    // Add a valid file to the form data
     const testFile = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
     mockFormData.append('client-id-123', testFile);
 
     await POST(mockRequest as NextRequest);
 
-    // Verify mkdir was called
     const mkdirMock = jest.mocked(fsPromises.mkdir);
     expect(mkdirMock).toHaveBeenCalled();
 
-    // Verify writeFile was called
     const writeFileMock = jest.mocked(fsPromises.writeFile);
     expect(writeFileMock).toHaveBeenCalled();
 
-    // Verify response
     expect(NextResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
         files: [
@@ -143,9 +160,6 @@ describe('Test Upload API Route', () => {
       })
     );
 
-    // Verify OCR processing was triggered
-    // Note: In our implementation, processOcrInBackground is called but not awaited,
-    // so we can't directly test the function but we can check if processDocumentWithRetry was called
     expect(processDocumentWithRetry).toHaveBeenCalledWith(
       expect.objectContaining({
         fileId: 'test-file-uuid',
@@ -155,7 +169,6 @@ describe('Test Upload API Route', () => {
   });
 
   it('should handle invalid files', async () => {
-    // Mock validator to return invalid
     jest.mocked(validateFile).mockReturnValueOnce({
       valid: false,
       errors: ['File type not supported'],
@@ -166,11 +179,9 @@ describe('Test Upload API Route', () => {
 
     await POST(mockRequest as NextRequest);
 
-    // Verify writeFile was NOT called
     const writeFileMock = jest.mocked(fsPromises.writeFile);
     expect(writeFileMock).not.toHaveBeenCalled();
 
-    // Verify response
     expect(NextResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
         files: [
@@ -184,19 +195,16 @@ describe('Test Upload API Route', () => {
       })
     );
 
-    // Verify OCR was NOT called for invalid files
     expect(processDocumentWithRetry).not.toHaveBeenCalled();
   });
 
   it('should handle mixed valid and invalid files', async () => {
-    // Add a valid and an invalid file
     const validFile = new File(['valid content'], 'valid.pdf', { type: 'application/pdf' });
     const invalidFile = new File(['invalid content'], 'invalid.txt', { type: 'text/plain' });
 
     mockFormData.append('valid-id', validFile);
     mockFormData.append('invalid-id', invalidFile);
 
-    // Mock validator to validate based on file type
     jest.mocked(validateFile).mockImplementation((file) => {
       if (file.type === 'application/pdf') {
         return { valid: true, errors: [] };
@@ -206,11 +214,9 @@ describe('Test Upload API Route', () => {
 
     await POST(mockRequest as NextRequest);
 
-    // Should have only tried to write the valid file
     const writeFileMock = jest.mocked(fsPromises.writeFile);
     expect(writeFileMock).toHaveBeenCalledTimes(1);
 
-    // Verify response contains both files with correct statuses
     expect(NextResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
         files: expect.arrayContaining([
@@ -227,12 +233,10 @@ describe('Test Upload API Route', () => {
       })
     );
 
-    // Verify OCR was called only for the valid file
     expect(processDocumentWithRetry).toHaveBeenCalledTimes(1);
   });
 
   it('should handle errors when saving files', async () => {
-    // Mock writeFile to fail
     const writeFileMock = jest.mocked(fsPromises.writeFile);
     writeFileMock.mockRejectedValueOnce(new Error('Disk full'));
 
@@ -241,7 +245,6 @@ describe('Test Upload API Route', () => {
 
     await POST(mockRequest as NextRequest);
 
-    // Verify response
     expect(NextResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
         files: [
@@ -255,7 +258,6 @@ describe('Test Upload API Route', () => {
       })
     );
 
-    // OCR should not be called if file save fails
     expect(processDocumentWithRetry).not.toHaveBeenCalled();
   });
 });

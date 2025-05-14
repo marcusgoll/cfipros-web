@@ -5,7 +5,7 @@
  * helper functions to check flag status in both server and client components.
  */
 
-import { posthog } from 'posthog-js';
+import { posthog /*, type PostHog*/ } from 'posthog-js';
 
 // Define all feature flags with their default values
 export const FEATURE_FLAGS = {
@@ -37,7 +37,7 @@ export function isFeatureEnabled(flag: FeatureFlag | undefined): boolean {
     if (flagPayload !== undefined) {
       // If PostHog has a payload for the flag, use its evaluation.
       // isFeatureEnabled will use the payload if available, or evaluate based on rollout if no payload.
-      return posthog.isFeatureEnabled(flag);
+      return !!posthog.isFeatureEnabled(flag);
     }
     // If no payload, it means PostHog might not have this flag defined explicitly with a payload,
     // but isFeatureEnabled might still return a value based on rollout rules or if it's a simple boolean flag.

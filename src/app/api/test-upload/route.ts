@@ -23,20 +23,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
   }
 
+  const cookieStore = await cookies(); // Await here to get the actual store for Route Handler
+
   // Initialize Supabase client using createServerClient from @supabase/ssr
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      async get(name: string) {
-        const cookieStore = await cookies();
+      get(name: string) {
+        // Not async, operates on resolved cookieStore
         return cookieStore.get(name)?.value;
       },
-      async set(name: string, value: string, options: CookieOptions) {
-        const cookieStore = await cookies();
-        cookieStore.set(name, value, options);
+      set(name: string, value: string, options: CookieOptions) {
+        // Not async
+        try {
+          cookieStore.set(name, value, options);
+        } catch {
+          // Errors are expected here in Route Handlers if middleware is not setup for writes
+          // or if trying to set a cookie in a read-only context without proper response manipulation.
+        }
       },
-      async remove(name: string, options: CookieOptions) {
-        const cookieStore = await cookies();
-        cookieStore.remove(name, options);
+      remove(name: string, options: CookieOptions) {
+        // Not async
+        try {
+          cookieStore.delete({ name, ...options });
+        } catch {
+          // Errors are expected here in Route Handlers if middleware is not setup for writes
+          // or if trying to delete a cookie in a read-only context without proper response manipulation.
+        }
       },
     },
   });

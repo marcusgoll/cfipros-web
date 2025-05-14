@@ -18,10 +18,11 @@ const eslintConfig = [
       'coverage/',
       '*.config.js',
       '*.config.mjs', // This will ignore eslint.config.mjs itself, which is usually intended.
+      'src/lib/types/database.types.ts',
     ],
   },
   ...compat.config({
-    extends: ['next/core-web-vitals', 'next/typescript', 'eslint-config-prettier'],
+    extends: ['eslint-config-prettier', 'next/core-web-vitals', 'next/typescript'],
   }),
 ];
 

@@ -11,8 +11,8 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 // Initialize Stripe client
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16', // Use the latest stable API version
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  // apiVersion: '2023-10-16', // Ensure this is the intended API version
   appInfo: {
     name: 'CFIPros',
     version: '1.0.0',

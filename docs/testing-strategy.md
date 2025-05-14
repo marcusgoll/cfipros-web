@@ -109,18 +109,33 @@ The testing strategy for CFIPros aims to ensure a high-quality, reliable, and ma
     * Care must be taken not to use real PII in test data, especially in shared environments.
 * **FAA Test Corpus:** The collection of sample FAA test documents for accuracy testing needs to be managed and versioned if necessary.
 
-## 5. CI/CD Integration
+## 5. CI/CD Integration & Pre-Commit Quality Gates
 
-* **Vercel CI/CD:**
-    * **Unit and Integration Tests:** Will be run automatically on every push to a PR and before merging to the main branch. A failing test run will block the merge/deployment.
-    * **E2E Tests:** May be run on a schedule (e.g., nightly against staging/preview) or triggered manually before a production release due to their longer execution time.
-    * **Linting & Formatting Checks:** Will be part of the pre-commit hooks and also run in the CI pipeline.
-* **Build & Deployment:** Vercel handles builds and deployments. Test failures will prevent deployments to preview and production environments.
+A robust CI/CD pipeline is essential for maintaining code quality and ensuring smooth deployments. Furthermore, local pre-commit checks are crucial for catching issues early and form part of the "Definition of Done" for development tasks.
+
+* **Local Pre-Commit Checks (Mandatory for Story Completion):**
+    * Before any code related to a story is committed (`git add`, `git commit`), and before the story is considered ready for further review or merging, the following scripts **MUST** be run locally by the developer and pass successfully:
+        * `npm run typecheck`: Ensures all TypeScript type checks pass.
+        * `npm run lint`: Enforces code style guidelines and identifies potential errors. Developers must fix reported issues or apply auto-fixes and commit the changes.
+        * `npm run format:check`: Verifies adherence to code formatting standards. Developers must apply required formatting changes (e.g., using `npm run format`) and commit them.
+        * `npm run test:coverage`: Executes all unit and integration tests. All tests must pass, and code coverage should meet the project's defined targets.
+    * These checks serve as a local "Definition of Done" from a code quality perspective for any development work on a story. Successful completion of these checks is a prerequisite for pushing code and marking development tasks as complete.
+
+* **Vercel CI/CD Pipeline:**
+    * **Automated Checks on Pull Requests (PRs):** On every push to a PR and before merging to the `main` branch, the following checks will be automatically executed:
+        * **Linting & Formatting:** `npm run lint` and `npm run format:check` (or their direct equivalents if the CI environment runs them differently but achieves the same goal).
+        * **Type Checking:** `npm run typecheck`.
+        * **Unit and Integration Tests:** `npm run test:coverage`.
+    * A failing check in any of these automated steps will block the PR merge and any subsequent deployment.
+    * **E2E Tests:** May be run on a schedule (e.g., nightly against staging/preview environments) or triggered manually before a production release due to their longer execution time. Successful completion will be a gate for production promotion.
+
+* **Build & Deployment:** Vercel handles builds and deployments. Test failures in the CI pipeline (including any of the checks above) will prevent deployments to preview and production environments.
 
 ## Change Log
 
-| Change        | Date       | Version | Description                  | Author         |
-| :------------ | :--------- | :------ | :--------------------------- | :------------- |
-| Initial draft | 2025-05-09 | 0.1     | First draft of testing strategy | Architect Gem  |
+| Change                                | Date       | Version | Description                                                                                                     | Author        |
+| :------------------------------------ | :--------- | :------ | :-------------------------------------------------------------------------------------------------------------- | :------------ |
+| Initial draft                         | 2025-05-09 | 0.1     | First draft of testing strategy                                                                                 | Architect Gem |
+| Added pre-commit checks to CI & DoD | 2025-05-14 | 0.2     | Clarified mandatory local pre-commit checks (`typecheck`, `lint`, `format:check`, `test:coverage`) within Section 5. | Gemini AI     |
 
 ---
