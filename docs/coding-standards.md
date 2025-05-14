@@ -123,10 +123,175 @@ Refer to `docs/architecture.md` for broader security decisions. These are code-l
 * Reviewers should check for adherence to coding standards, correctness, performance, security, and test coverage.
 * Use Pull Requests (PRs) for code reviews.
 
+## 6. UI Component Conventions with shadcn/ui
+
+CFIPros uses a component library based on [shadcn/ui](https://ui.shadcn.com/), which provides a collection of reusable, accessible components built on top of Radix UI and styled with Tailwind CSS. These conventions ensure consistency in UI development across the application.
+
+### 6.1. Component Structure
+
+- **Location:** UI components are organized in the following directories:
+  - `src/components/ui/`: Base shadcn/ui components (buttons, inputs, cards, etc.)
+  - `src/components/layout/`: Layout components (Header, Footer, Sidebar, etc.)
+  - `src/components/features/`: Feature-specific components that combine base UI components
+
+- **Naming:**
+  - Component files follow `PascalCase.tsx` naming (e.g., `Button.tsx`, `Dialog.tsx`)
+  - Component functions are named in `PascalCase` matching the file name (e.g., `function Button()`)
+  - Sub-components are named with the parent component as prefix (e.g., `DialogHeader`, `CardContent`)
+
+### 6.2. Component Implementation
+
+- **Base Structure:** All components should:
+  - Include proper TypeScript typing (leveraging React's built-in types)
+  - Use the `cn()` utility for class name merging
+  - Support className prop for customization
+  - Be properly exported at the file bottom
+
+- **Pattern Example:**
+  ```tsx
+  import * as React from "react";
+  import { cn } from "@/lib/utils";
+
+  function Component({ 
+    className, 
+    children,
+    ...props 
+  }: React.HTMLAttributes<HTMLDivElement>) {
+    return (
+      <div 
+        className={cn("default-classes-here", className)}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  export { Component };
+  ```
+
+### 6.3. Styling Approach
+
+- **Base Styling:** Use Tailwind CSS utility classes for all styling
+- **Variants:** Use `class-variance-authority` (cva) for components with variants (see Button component)
+- **Class Merging:** Always use the `cn()` utility from `@/lib/utils` to merge classnames
+- **CSS Variables:** Leverage CSS variables from `globals.css` for theme colors and properties
+- **Dark Mode:** Ensure all components support both light and dark modes
+
+### 6.4. Accessibility
+
+- **Keyboard Navigation:** All interactive components must be navigable via keyboard
+- **ARIA Attributes:** Use appropriate ARIA roles and attributes where necessary
+- **Focus States:** Ensure visible focus states for all interactive elements
+- **Screen Readers:** Provide appropriate text alternatives and screen reader support
+
+### 6.5. Usage Guidelines
+
+#### Basic Components
+
+```tsx
+// Button usage
+import { Button } from "@/components/ui/button";
+
+export default function Page() {
+  return (
+    <Button variant="default">Click Me</Button>
+    <Button variant="outline">Outline Button</Button>
+    <Button variant="brand">Brand Button</Button>
+  );
+}
+
+// Card usage
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription, 
+  CardContent, 
+  CardFooter 
+} from "@/components/ui/card";
+
+export default function Page() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Card Title</CardTitle>
+        <CardDescription>Card description text</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>Card content goes here</p>
+      </CardContent>
+      <CardFooter>
+        <Button>Action</Button>
+      </CardFooter>
+    </Card>
+  );
+}
+```
+
+#### Form Components
+
+```tsx
+// Input usage
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export default function Page() {
+  return (
+    <div className="grid w-full max-w-sm items-center gap-1.5">
+      <Label htmlFor="email">Email</Label>
+      <Input type="email" id="email" placeholder="Email" />
+    </div>
+  );
+}
+```
+
+#### Dialog Example
+
+```tsx
+// Dialog usage
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+export default function Page() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">Open Dialog</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Example Dialog</DialogTitle>
+          <DialogDescription>
+            This is a description of the dialog content.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">Dialog content goes here</div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### 6.6. Testing Components
+
+- Every component should have corresponding tests in `src/components/ui/__tests__/`
+- Test variations of each component, especially for different variants, sizes, and states
+- Ensure components render properly and handle events as expected
+- Test accessibility features using appropriate testing tools
+
 ## Change Log
 
-| Change        | Date       | Version | Description                  | Author         |
-| :------------ | :--------- | :------ | :--------------------------- | :------------- |
-| Initial draft | 2025-05-09 | 0.1     | First draft of coding standards | Architect Gem  |
+| Change                       | Date       | Version | Description                       | Author         |
+| :--------------------------- | :--------- | :------ | :-------------------------------- | :------------- |
+| Initial draft                | 2025-05-09 | 0.1     | First draft of coding standards   | Architect Gem  |
+| Add UI Component Conventions | 2025-05-17 | 0.2     | Document shadcn/ui conventions    | Developer Agent|
 
 ---
