@@ -5,24 +5,6 @@ import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import type { AcsCode } from '../src/lib/types/acs';
 
-// Interface for flexible input, allowing camelCase or snake_case for some fields
-interface FlexibleAcsCodeInput {
-  id: string;
-  description: string;
-  area?: string | null;
-  task?: string | null;
-  subTask?: string | null; // from source file (camelCase)
-  sub_task?: string | null; // from source file (snake_case)
-  knowledgeArea?: string | null; // from source file (camelCase)
-  knowledge_area?: string | null; // from source file (snake_case)
-  knowledge?: string | null; // Added for the 'knowledge' field from source
-  examType?: string; // from source file (camelCase)
-  exam_type?: string; // from source file (snake_case)
-  // Allow other properties that might exist in source files but are not used for DB insertion
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-}
-
 // Define __filename and __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename); // Using scriptDir to avoid any potential __dirname conflicts
@@ -121,14 +103,14 @@ async function seedDatabase() {
       }
       // --- End: Identify and log duplicate IDs ---
 
-      const codesToInsert = acsCodes.map((code: FlexibleAcsCodeInput) => ({
+      const codesToInsert = acsCodes.map((code) => ({
         id: code.id,
         description: code.description,
         area: code.area,
         task: code.task,
-        sub_task: code.subTask || code.sub_task,
-        knowledge_area: code.knowledge || code.knowledgeArea || code.knowledge_area,
-        exam_type: code.examType || code.exam_type,
+        sub_task: code.sub_task,
+        knowledge_area: code.knowledge_area,
+        exam_type: code.exam_type,
       }));
 
       const validCodesToInsert = codesToInsert.filter((code) => code.id && code.exam_type != null);
