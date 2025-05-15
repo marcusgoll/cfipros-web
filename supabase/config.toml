@@ -4,16 +4,13 @@
 project_id = "yimvluqgmullzscldfyw"
 
 # Local development configuration
-[local]
-api_port = 54321
-db_port = 54322
-studio_port = 54323
+
 
 # Authentication configuration
 [auth]
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["https://localhost:3000"]
-autoconfirm = false
+
 
 # Email authentication configuration
 [auth.email]
